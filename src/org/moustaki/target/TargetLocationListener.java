@@ -19,11 +19,11 @@ public class TargetLocationListener implements LocationListener {
 	@Override
 	public void onLocationChanged(Location loc) {
 		if (loc != null) {
-			GeoPoint p = new GeoPoint(
+            GeoPoint p = new GeoPoint(
                     (int) (loc.getLatitude() * 1E6), 
                     (int) (loc.getLongitude() * 1E6)
             );
-		    this.mc.animateTo(p);
+            this.mc.animateTo(p);
             this.mc.setZoom(16);       
             this.mv.invalidate();
 		}
