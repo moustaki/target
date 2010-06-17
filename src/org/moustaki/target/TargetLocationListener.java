@@ -20,7 +20,7 @@ public class TargetLocationListener implements LocationListener {
 	public void onLocationChanged(Location loc) {
 		if (loc != null) {
 			GeoPoint p = new GeoPoint(
-					(int) (loc.getLatitude() * 1E6), 
+                    (int) (loc.getLatitude() * 1E6), 
                     (int) (loc.getLongitude() * 1E6)
             );
 		    this.mc.animateTo(p);
