@@ -26,8 +26,8 @@ public class Target extends MapActivity {
         this.ll = new TargetLocationListener(this.mc, this.mv);
         this.lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, ll);
     }
-	@Override
-	protected boolean isRouteDisplayed() {
-		return false;
-	}
+    @Override
+    protected boolean isRouteDisplayed() {
+        return false;
+    }
 }
