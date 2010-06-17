@@ -18,29 +18,26 @@ public class TargetLocationListener implements LocationListener {
 	}
 	@Override
 	public void onLocationChanged(Location loc) {
-		if (loc != null) {                
-            GeoPoint p = new GeoPoint(
-                    (int) (loc.getLatitude() * 1E6), 
+		if (loc != null) {
+			GeoPoint p = new GeoPoint(
+					(int) (loc.getLatitude() * 1E6), 
                     (int) (loc.getLongitude() * 1E6)
             );
-            this.mc.animateTo(p);
+		    this.mc.animateTo(p);
             this.mc.setZoom(16);       
             this.mv.invalidate();
-        }
+		}
 	}
 	@Override
     public void onProviderDisabled(String provider) {
         // TODO Auto-generated method stub
     }
-
     @Override
     public void onProviderEnabled(String provider) {
         // TODO Auto-generated method stub
     }
-
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub	
 	}
 }
