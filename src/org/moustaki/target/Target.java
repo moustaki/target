@@ -16,16 +16,16 @@ public class Target extends MapActivity {
 	/** Called when the activity is first created. */
 	@Override
     public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
-		this.mv = (MapView) findViewById(R.id.mapview);
-		this.mv.setBuiltInZoomControls(true);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        this.mv = (MapView) findViewById(R.id.mapview);
+        this.mv.setBuiltInZoomControls(true);
         this.mc = this.mv.getController();
         this.mc.setZoom(16);
         this.lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         this.ll = new TargetLocationListener(this.mc, this.mv);
         this.lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, ll);
-	}
+    }
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
