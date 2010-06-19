@@ -52,6 +52,7 @@ public class Target extends MapActivity {
             this.addObjectives(10);
             return true;
         case MENU_QUIT:
+            this.finish();
             return true;
         }
         return false;
