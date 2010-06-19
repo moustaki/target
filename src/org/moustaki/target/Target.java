@@ -40,7 +40,7 @@ public class Target extends MapActivity {
         this.mc = this.mv.getController();
         this.mc.setZoom(16);
         this.lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        this.ll = new TargetLocationListener(this.mc, this.mv);
+        this.ll = new TargetLocationListener(this.mc, this.mv, this);
         this.lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll); // Should be LocationManager.GPS_PROVIDER
     }
     
