@@ -65,7 +65,7 @@ public class Target extends MapActivity {
         OverlayItem objective = null;
         // Adding n objectives
         for (int i=0;i<n;i++) {
-            objective = new OverlayItem(this.getRandomLocationInCurrentMap(), "Objective", "description");
+            objective = new OverlayItem(this.getRandomLocationInCurrentMap(), "Objective " + Integer.toString(i), "Bank");
             objectives.addOverlay(objective);
         }
         overlays.add(objectives);
