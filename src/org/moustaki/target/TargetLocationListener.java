@@ -10,12 +10,15 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 public class TargetLocationListener implements LocationListener {
+    
 	private MapController mc;
 	private MapView mv;
+	
 	public TargetLocationListener(MapController mc, MapView mv) {
 		this.mc = mc;
 		this.mv = mv;
 	}
+	
 	@Override
 	public void onLocationChanged(Location loc) {
 		if (loc != null) {
@@ -28,14 +31,17 @@ public class TargetLocationListener implements LocationListener {
             this.mv.invalidate();
 		}
 	}
+	
 	@Override
     public void onProviderDisabled(String provider) {
         // TODO Auto-generated method stub
     }
+	
     @Override
     public void onProviderEnabled(String provider) {
         // TODO Auto-generated method stub
     }
+    
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
     	// TODO Auto-generated method stub	

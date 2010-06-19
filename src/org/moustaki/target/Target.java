@@ -19,13 +19,19 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
 public class Target extends MapActivity {
+    
     private static final int MENU_ADD_OBJECTIVES = 0;
     private static final int MENU_QUIT = 1;
+    private static final int MENU_START_GAME = 2;
+    private static final int MENU_GET_OBJECTIVE = 3; 
+    
     private LocationManager lm;
     private LocationListener ll;
     private MapController mc;
     private MapView mv;
-
+    private boolean gameStarted = false;
+    private int numberOfObjectives = 0;
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,8 +46,19 @@ public class Target extends MapActivity {
         this.lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, ll); // Should be LocationManager.GPS_PROVIDER
     }
     
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, MENU_ADD_OBJECTIVES, 0, "New objectives");
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        if (!this.gameStarted) {
+            // Game not yet started
+            menu.add(0, MENU_ADD_OBJECTIVES, 0, "New objectives");
+            if (this.numberOfObjectives > 0) {
+                // Some objectives available
+                menu.add(0, MENU_START_GAME, 0, "Start game");
+            }
+        } else {
+            // Game started
+            menu.add(0, MENU_GET_OBJECTIVE, 0, "Commit robbery");
+        }
         menu.add(0, MENU_QUIT, 0, "Quit");
         return true;
     }
@@ -49,11 +66,13 @@ public class Target extends MapActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case MENU_ADD_OBJECTIVES:
-            this.addObjectives(10);
+            this.numberOfObjectives = this.addObjectives(10);
             return true;
         case MENU_QUIT:
             this.finish();
             return true;
+        case MENU_START_GAME:
+            this.gameStarted = true;
         }
         return false;
     }
@@ -64,9 +83,11 @@ public class Target extends MapActivity {
         Drawable drawable = this.getResources().getDrawable(R.drawable.obj1);
         ObjectivesOverlay objectives = new ObjectivesOverlay(drawable, this);
         OverlayItem objective = null;
+        GeoPoint point = null;
         // Adding n objectives
         for (int i=0;i<n;i++) {
-            objective = new OverlayItem(this.getRandomLocationInCurrentMap(), "Objective " + Integer.toString(i), "Bank");
+            point = this.getRandomLocationInCurrentMap();
+            objective = new OverlayItem(point, "Objective " + Integer.toString(i), "Bank");
             objectives.addOverlay(objective);
         }
         overlays.add(objectives);
