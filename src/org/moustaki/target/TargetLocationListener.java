@@ -13,6 +13,7 @@ public class TargetLocationListener implements LocationListener {
     
 	private MapController mc;
 	private MapView mv;
+	private GeoPoint currentLocation;
 	
 	public TargetLocationListener(MapController mc, MapView mv) {
 		this.mc = mc;
@@ -26,10 +27,15 @@ public class TargetLocationListener implements LocationListener {
                     (int) (loc.getLatitude() * 1E6), 
                     (int) (loc.getLongitude() * 1E6)
             );
+            this.currentLocation = p;
             this.mc.animateTo(p);
             this.mc.setZoom(16);       
             this.mv.invalidate();
 		}
+	}
+	
+	public GeoPoint getCurrentLocation() {
+	    return this.currentLocation;
 	}
 	
 	@Override

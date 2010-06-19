@@ -16,7 +16,6 @@ import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
-import com.google.android.maps.OverlayItem;
 
 public class Target extends MapActivity {
     
@@ -26,11 +25,10 @@ public class Target extends MapActivity {
     private static final int MENU_GET_OBJECTIVE = 3; 
     
     private LocationManager lm;
-    private LocationListener ll;
+    private TargetLocationListener ll;
     private MapController mc;
     private MapView mv;
     private boolean gameStarted = false;
-    private int numberOfObjectives = 0;
     
     /** Called when the activity is first created. */
     @Override
@@ -43,7 +41,7 @@ public class Target extends MapActivity {
         this.mc.setZoom(16);
         this.lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         this.ll = new TargetLocationListener(this.mc, this.mv);
-        this.lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, ll); // Should be LocationManager.GPS_PROVIDER
+        this.lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll); // Should be LocationManager.GPS_PROVIDER
     }
     
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -51,13 +49,16 @@ public class Target extends MapActivity {
         if (!this.gameStarted) {
             // Game not yet started
             menu.add(0, MENU_ADD_OBJECTIVES, 0, "New objectives");
-            if (this.numberOfObjectives > 0) {
+            if (Objective.getNumberOfObjectives() > 0) {
                 // Some objectives available
                 menu.add(0, MENU_START_GAME, 0, "Start game");
             }
         } else {
             // Game started
-            menu.add(0, MENU_GET_OBJECTIVE, 0, "Commit robbery");
+            // Need to tell to the user if the GPS connection has dropped, here
+            if (Objective.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 20.0) != null) {
+                menu.add(0, MENU_GET_OBJECTIVE, 0, "Commit robbery");
+            }
         }
         menu.add(0, MENU_QUIT, 0, "Quit");
         return true;
@@ -66,7 +67,7 @@ public class Target extends MapActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case MENU_ADD_OBJECTIVES:
-            this.numberOfObjectives = this.addObjectives(10);
+            this.addObjectives(10);
             return true;
         case MENU_QUIT:
             this.finish();
@@ -82,12 +83,12 @@ public class Target extends MapActivity {
         overlays.clear();
         Drawable drawable = this.getResources().getDrawable(R.drawable.obj1);
         ObjectivesOverlay objectives = new ObjectivesOverlay(drawable, this);
-        OverlayItem objective = null;
+        Objective objective = null;
         GeoPoint point = null;
         // Adding n objectives
         for (int i=0;i<n;i++) {
             point = this.getRandomLocationInCurrentMap();
-            objective = new OverlayItem(point, "Objective " + Integer.toString(i), "Bank");
+            objective = new Objective(i, point, "Objective " + Integer.toString(i), "Bank");
             objectives.addOverlay(objective);
         }
         overlays.add(objectives);
