@@ -1,0 +1,12 @@
+application: moustaki-target
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+ - url: /games/.*
+   script: game.py
+ - url: /players/.*
+   script: game.py
+ - url: /register
+   script: game.py
