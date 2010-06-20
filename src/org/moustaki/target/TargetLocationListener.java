@@ -19,9 +19,9 @@ public class TargetLocationListener implements LocationListener {
 	private GeoPoint currentLocation;
 	private Context context;
 	
-	public TargetLocationListener(MapController mc, MapView mv, Context context) {
-		this.mc = mc;
-		this.mv = mv;
+	public TargetLocationListener(Target context) {
+		this.mc = context.getMapController();
+		this.mv = context.getMapView();
 		this.context = context;
 	}
 	
