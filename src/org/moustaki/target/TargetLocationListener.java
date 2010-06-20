@@ -18,6 +18,7 @@ public class TargetLocationListener implements LocationListener {
 	private MapView mv;
 	private GeoPoint currentLocation;
 	private Context context;
+	private boolean firstUpdateReceived = false;
 	
 	public TargetLocationListener(Target context) {
 		this.mc = context.getMapController();
@@ -32,8 +33,12 @@ public class TargetLocationListener implements LocationListener {
                     (int) (loc.getLatitude() * 1E6), 
                     (int) (loc.getLongitude() * 1E6)
             );
+            // only animate to current location for the first update
             this.currentLocation = p;
-            this.mc.animateTo(p);
+            if (!this.firstUpdateReceived) {
+                this.mc.animateTo(p);
+                this.firstUpdateReceived = true;
+            }
             // this.mc.setZoom(16);       
             this.mv.invalidate();
             
