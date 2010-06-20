@@ -4,7 +4,7 @@ import com.google.android.maps.GeoPoint;
 
 public class DistanceCalculator {
 
-   private static double Radius = 6371000;
+   private static double Radius = 6371000.0;
 
    public static double distance(GeoPoint StartP, GeoPoint EndP) {
       double lat1 = StartP.getLatitudeE6()/1E6;

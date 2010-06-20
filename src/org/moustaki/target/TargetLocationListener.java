@@ -38,7 +38,7 @@ public class TargetLocationListener implements LocationListener {
             this.mv.invalidate();
             
             Drawable drawable = this.context.getResources().getDrawable(R.drawable.thief);
-            ThiefOverlay thiefOverlay = new ThiefOverlay(drawable, this.context);
+            ThiefOverlay thiefOverlay = ThiefOverlay.getThiefOverlay(drawable, this.context);
             OverlayItem thief = new OverlayItem(p, "Thief", "");
             thiefOverlay.addOverlay(thief);
             this.mv.getOverlays().add(thiefOverlay);

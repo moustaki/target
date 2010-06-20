@@ -12,13 +12,22 @@ public class ThiefOverlay extends ItemizedOverlay {
     
     private ArrayList<OverlayItem> thieves = new ArrayList<OverlayItem>();
     private Context context;
-
+    private static ThiefOverlay instance = null;
+    
     public ThiefOverlay(Drawable d, Context c) {
         super(boundCenterBottom(d));
         this.context = c;
     }
     
+    public static ThiefOverlay getThiefOverlay(Drawable d, Context c) {
+        if (instance == null) {
+            instance = new ThiefOverlay(d, c);
+        }
+        return instance;
+    }
+    
     public void addOverlay(OverlayItem overlay) {
+        this.thieves.clear();
         this.thieves.add(overlay);
         populate();
     }
