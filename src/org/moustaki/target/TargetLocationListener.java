@@ -34,12 +34,12 @@ public class TargetLocationListener implements LocationListener {
             );
             this.currentLocation = p;
             this.mc.animateTo(p);
-            this.mc.setZoom(16);       
+            // this.mc.setZoom(16);       
             this.mv.invalidate();
             
             Drawable drawable = this.context.getResources().getDrawable(R.drawable.thief);
             ThiefOverlay thiefOverlay = ThiefOverlay.getThiefOverlay(drawable, this.context);
-            OverlayItem thief = new OverlayItem(p, "Thief", "");
+            OverlayItem thief = new OverlayItem(this.currentLocation, "Thief", "");
             thiefOverlay.addOverlay(thief);
             this.mv.getOverlays().add(thiefOverlay);
 		}
