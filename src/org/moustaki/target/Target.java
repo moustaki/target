@@ -60,6 +60,7 @@ public class Target extends MapActivity {
         this.objectives = ObjectivesOverlay.getObjectivesOverlay(drawable, this);
         
         // Setting up game context
+        // @todo - shouldn't be hardcoded here
         this.game = new Game("http://192.168.1.67:1234");
         
         // Registering user
@@ -68,7 +69,7 @@ public class Target extends MapActivity {
         Toast.makeText(this, notification, Toast.LENGTH_SHORT).show();
         
         // Bad guy or good guy?
-        this.chooseSide();
+        this.pickSide();
     }
     
     public MapView getMapView() {
@@ -119,7 +120,7 @@ public class Target extends MapActivity {
         return this.game;
     }
     
-    public boolean chooseSide() {
+    public boolean pickSide() {
         final CharSequence[] items = {"Police", "Thieves"};
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Pick a side");
