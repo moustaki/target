@@ -12,10 +12,22 @@ public class ObjectivesOverlay extends ItemizedOverlay {
 
     private ArrayList<OverlayItem> overlays = new ArrayList<OverlayItem>();
     private Context context;
+    private static ObjectivesOverlay instance = null;
 
     public ObjectivesOverlay(Drawable d, Context c) {
         super(boundCenterBottom(d));
         this.context = c;
+    }
+    
+    public static ObjectivesOverlay getObjectivesOverlay(Drawable d, Context c) {
+        if (instance == null) {
+            instance = new ObjectivesOverlay(d, c);
+        }
+        return instance;
+    }
+    
+    public void clear() {
+        this.overlays.clear();
     }
 
     public void addOverlay(OverlayItem overlay) {

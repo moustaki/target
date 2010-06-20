@@ -80,9 +80,9 @@ public class Target extends MapActivity {
 
     public int addObjectives(int n) {
         List<Overlay> overlays = this.mv.getOverlays();
-        overlays.clear();
         Drawable drawable = this.getResources().getDrawable(R.drawable.obj1);
-        ObjectivesOverlay objectives = new ObjectivesOverlay(drawable, this);
+        ObjectivesOverlay objectives = ObjectivesOverlay.getObjectivesOverlay(drawable, this);
+        objectives.clear();
         Objective objective = null;
         GeoPoint point = null;
         // Adding n objectives
