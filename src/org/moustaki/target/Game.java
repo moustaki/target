@@ -16,6 +16,7 @@ public class Game {
     
     private String base = null;
     private int playerId;
+    private int gameId;
     private int playerSide;
     
     public Game(String base) {
@@ -42,6 +43,24 @@ public class Game {
             e.printStackTrace();
         }
         return this.playerId;
+    }
+    
+    public int startGame() {
+        JSONObject response = this.getJSON("/start");
+        try {
+            gameId = response.getInt("id");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return gameId;
+    }
+    
+    public boolean joinGame(int gameId) {
+        this.gameId = gameId;
+        HashMap<String,String> data = new HashMap<String,String>();
+        data.put("player_id", ""+this.playerId);
+        this.postJSON("/games/" + gameId, data);
+        return true;
     }
     
     public boolean setSide(int side) {

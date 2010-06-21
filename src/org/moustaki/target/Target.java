@@ -13,8 +13,10 @@ import android.graphics.drawable.Drawable;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.text.Editable;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -67,6 +69,9 @@ public class Target extends MapActivity {
         this.game.register();
         CharSequence notification = "Registered as user " + this.game.getPlayerId();
         Toast.makeText(this, notification, Toast.LENGTH_SHORT).show();
+        
+        // Pick game identifier
+        this.joinGame();
         
         // Bad guy or good guy?
         this.pickSide();
@@ -134,6 +139,44 @@ public class Target extends MapActivity {
         AlertDialog alert = builder.create();
         alert.show();
         return true;
+    }
+    
+    public boolean joinGame() {
+        final CharSequence[] items = {"Start new game", "Join existing game"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Join a game");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                Context context = getApplicationContext();
+                if (item == 0) {
+                    int gameId = getGame().startGame();
+                    getGame().joinGame(gameId);
+                    Toast.makeText(context, "Joined game " + gameId, Toast.LENGTH_SHORT).show();
+                } else {
+                    joinExistingGame();
+                }
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+        return true;
+    }
+    
+    public void joinExistingGame() {
+        AlertDialog.Builder gameIdInput = new AlertDialog.Builder(this);
+        gameIdInput.setTitle("Join game");
+        gameIdInput.setMessage("Enter game identifier");
+        final EditText input = new EditText(this);
+        gameIdInput.setView(input);
+        gameIdInput.setPositiveButton("Ok", new DialogInterface.OnClickListener() {  
+            public void onClick(DialogInterface dialog, int button) {  
+               int gameId = Integer.parseInt(input.getText().toString());
+               getGame().joinGame(gameId);
+               Context context = getApplicationContext();
+               Toast.makeText(context, "Joined game " + gameId, Toast.LENGTH_SHORT).show();
+            }  
+        });
+        gameIdInput.show();
     }
     
     @Override
