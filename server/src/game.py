@@ -25,7 +25,23 @@ class GameController(webapp.RequestHandler):
         if game_id <= state.max_game_id:
             self.response.out.write(simplejson.dumps(state.games[game_id]))
         else:
-            self.response.out.write('{}')
+            self.error(404)
+            self.response.out.write('No such game')
+    def post(self, game_id):
+        game_id = int(game_id)
+        state = State()
+        if game_id <= state.max_game_id:
+            self.response.headers['Content-Type'] = 'application/json'
+            player_id = int(self.request.get('player_id'))
+            if player_id <= state.max_player_id:
+                state.games[game_id]['players'].append(state.players[player_id])
+                self.response.out.write(simplejson.dumps(state.games[game_id]))
+            else:
+                self.error(412)
+                self.response.out.write('No such player_id')
+        else:
+            self.error(404)
+            self.response.out.write('No such game')
 
 class PlayerController(webapp.RequestHandler):
     def get(self, player_id):
@@ -35,7 +51,8 @@ class PlayerController(webapp.RequestHandler):
         if player_id <= state.max_player_id:
             self.response.out.write(simplejson.dumps(state.players[player_id]))
         else:
-            self.response.out.write('{}')
+            self.error(404)
+            self.response.out.write('No such player')
     def post(self, player_id):
         player_id = int(player_id)
         state = State()
@@ -45,7 +62,8 @@ class PlayerController(webapp.RequestHandler):
             state.players[player_id]['side'] = side
             self.response.out.write(simplejson.dumps(state.players[player_id]))
         else:
-            self.response.write('{}')
+            self.error(404)
+            self.response.write('No such player')
         
 
 class RegisterController(webapp.RequestHandler):
@@ -60,7 +78,7 @@ class StartController(webapp.RequestHandler):
     def get(self):
         state = State()
         state.max_game_id += 1
-        state.games[state.max_game_id] = {"id":state.max_game_id}
+        state.games[state.max_game_id] = {"id":state.max_game_id,"players":[]}
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(simplejson.dumps(state.games[state.max_game_id]))
 
