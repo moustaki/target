@@ -10,3 +10,5 @@ handlers:
    script: game.py
  - url: /register
    script: game.py
+ - url: /start
+   script: game.py
