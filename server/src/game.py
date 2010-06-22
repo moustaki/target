@@ -2,16 +2,18 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
 
-def singleton(cls):
-    instance_container = []
-    def getinstance():
-        if not len(instance_container):
-            instance_container.append(cls())
-        return instance_container[0]
-    return getinstance
+class Singleton(type):
+    def __init__(cls, name, bases, dict):
+        super(Singleton, cls).__init__(name, bases, dict)
+        cls.instance = None
+ 
+    def __call__(cls, *args, **kw):
+        if cls.instance is None:
+            cls.instance = super(Singleton, cls).__call__(*args, **kw)
+        return cls.instance
 # A singleton class wrapping the game state - perhaps worth persisting it
-@singleton
 class State:
+    __metaclass__ = Singleton
     max_player_id = 0
     max_game_id = 0
     players = {}
