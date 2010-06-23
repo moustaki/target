@@ -18,6 +18,7 @@ public class Game {
     private int playerId;
     private int gameId;
     private int playerSide;
+    private boolean isGameMaster;
     
     public Game(String base) {
         this.base = base;
@@ -33,6 +34,10 @@ public class Game {
     
     public int getPlayerSide() {
         return this.playerSide;
+    }
+    
+    public boolean isGameMaster() {
+        return this.isGameMaster;
     }
     
     public int register() {
@@ -59,7 +64,15 @@ public class Game {
         this.gameId = gameId;
         HashMap<String,String> data = new HashMap<String,String>();
         data.put("player_id", ""+this.playerId);
-        this.postJSON("/games/" + gameId, data);
+        JSONObject response = this.postJSON("/games/" + gameId, data);
+        try { 
+            int masterPlayerId = response.getJSONArray("players").getJSONObject(0).getInt("id");
+            if (this.playerId == masterPlayerId) {
+                this.isGameMaster = true;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return true;
     }
     
