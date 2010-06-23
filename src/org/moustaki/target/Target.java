@@ -58,7 +58,7 @@ public class Target extends MapActivity {
         this.lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll); // Should be LocationManager.GPS_PROVIDER
         
         // Setting objectives overlay
-        Drawable drawable = this.getResources().getDrawable(R.drawable.obj1);
+        Drawable drawable = this.getResources().getDrawable(R.drawable.persuadotron);
         this.objectives = ObjectivesOverlay.getObjectivesOverlay(drawable, this);
         
         // Setting up game context
@@ -73,7 +73,7 @@ public class Target extends MapActivity {
         // Pick game identifier
         this.joinGame();
         
-        // Bad guy or good guy?
+        // Human or Alien?
         this.pickSide();
     }
     
@@ -108,7 +108,7 @@ public class Target extends MapActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case MENU_ADD_OBJECTIVES:
-            this.objectives.addObjectives(10);
+            this.objectives.addObjectives();
             List<Overlay> overlays = this.mv.getOverlays();
             overlays.add(this.objectives);
             return true;
@@ -126,9 +126,9 @@ public class Target extends MapActivity {
     }
     
     public boolean pickSide() {
-        final CharSequence[] items = {"Police", "Thieves"};
+        final CharSequence[] items = {this.getString(R.string.good_guys), this.getString(R.string.bad_guys)};
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Pick a side");
+        builder.setTitle(this.getString(R.string.side_picker));
         builder.setItems(items, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 Context context = getApplicationContext();

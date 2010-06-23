@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Target</string>
+   	<string name="bad_guys">Alien</string>
+   	<string name="good_guys">Human</string>
+   	<string name="side_picker">Pick a side</string>
+   	<string name="objective">Persuadotron</string>
+   	<string name="objective_unit">Watt</string>
+   	<string name="self_title">It\'s you!</string>
 </resources>

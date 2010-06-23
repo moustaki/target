@@ -61,14 +61,19 @@ public class ObjectivesOverlay extends ItemizedOverlay {
         return true;
     }
     
-    public int addObjectives(int n) {
+    public int addObjectives() {
+        // should be configurable?
+        int n = 10;
+        int[] power = {300, 300, 300, 300, 300, 500, 500, 500, 1000, 1000};
         objectives.clear();
         Objective objective = null;
         GeoPoint point = null;
         // Adding n objectives
         for (int i=0;i<n;i++) {
             point = this.getRandomLocationInCurrentMap();
-            objective = new Objective(i, point, "Objective " + Integer.toString(i), "Bank");
+            objective = new Objective(i, point, 
+                    this.context.getString(R.string.objective) + " "+ Integer.toString(i), 
+                    power[i] + " " + this.context.getString(R.string.objective_unit));
             this.addObjective(objective);
         }
         return n;
