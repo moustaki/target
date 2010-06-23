@@ -100,7 +100,7 @@ public class Target extends MapActivity {
             // Game started
             // Need to tell to the user if the GPS connection has dropped, here
             if (this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 20.0) != null) {
-                menu.add(0, MENU_GET_OBJECTIVE, 0, "Commit robbery");
+                menu.add(0, MENU_GET_OBJECTIVE, 0, this.getString(R.string.objective_action));
             }
         }
         menu.add(0, MENU_QUIT, 0, "Quit");
