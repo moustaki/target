@@ -38,7 +38,6 @@ public class Target extends MapActivity {
     private MapView mv;
     private ObjectivesOverlay objectives;
     private Game game;
-    private boolean gameStarted = false;
     
     /** Called when the activity is first created. */
     @Override
@@ -60,10 +59,14 @@ public class Target extends MapActivity {
         // Setting objectives overlay
         Drawable drawable = this.getResources().getDrawable(R.drawable.persuadotron);
         this.objectives = ObjectivesOverlay.getObjectivesOverlay(drawable, this);
+        List<Overlay> overlays = this.mv.getOverlays();
+        overlays.add(this.objectives);
         
         // Setting up game context
         // @todo - shouldn't be hardcoded here
-        this.game = new Game("http://moustaki-target.appspot.com");
+        this.game = new Game("http://moustaki-target.appspot.com", this);
+        //this.game = new Game("http://192.168.1.67:1234", this);
+        this.game.setObjectives(this.objectives);
         
         // Registering user
         this.game.register();
@@ -87,7 +90,7 @@ public class Target extends MapActivity {
     
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.clear();
-        if (!this.gameStarted) {
+        if (!this.game.isStarted()) {
             // Game not yet started
             if (this.game.isGameMaster()) {
                 menu.add(0, MENU_ADD_OBJECTIVES, 0, "New objectives");
@@ -110,21 +113,24 @@ public class Target extends MapActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case MENU_ADD_OBJECTIVES:
-            this.objectives.addObjectives();
-            List<Overlay> overlays = this.mv.getOverlays();
-            overlays.add(this.objectives);
+            this.objectives.addRandomObjectives();
             return true;
         case MENU_QUIT:
             this.finish();
             return true;
         case MENU_START_GAME:
-            this.gameStarted = true;
+            Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
+            this.game.start();
         }
         return false;
     }
     
     public Game getGame() {
         return this.game;
+    }
+    
+    public ObjectivesOverlay getObjectives() {
+        return this.objectives;
     }
     
     public boolean pickSide() {
@@ -151,7 +157,7 @@ public class Target extends MapActivity {
             public void onClick(DialogInterface dialog, int item) {
                 Context context = getApplicationContext();
                 if (item == 0) {
-                    int gameId = getGame().startGame();
+                    int gameId = getGame().registerNewGame();
                     getGame().joinGame(gameId);
                     Toast.makeText(context, "Joined game " + gameId, Toast.LENGTH_SHORT).show();
                 } else {
