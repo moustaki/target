@@ -1,46 +1,51 @@
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
+from google.appengine.ext import db
 
-class Singleton(type):
-    def __init__(cls, name, bases, dict):
-        super(Singleton, cls).__init__(name, bases, dict)
-        cls.instance = None
- 
-    def __call__(cls, *args, **kw):
-        if cls.instance is None:
-            cls.instance = super(Singleton, cls).__call__(*args, **kw)
-        return cls.instance
-# A singleton class wrapping the game state - perhaps worth persisting it
-class State:
-    __metaclass__ = Singleton
-    max_player_id = 0
-    max_game_id = 0
-    players = {}
-    games = {}
+class Player(db.Model):
+    side = db.IntegerProperty()
+    def to_dict(self):
+        d = {}
+        d['id'] = self.key().id()
+        if self.side:
+            d['side'] = self.side
+        return d
+class Game(db.Model):
+    players = db.ListProperty(db.Key)
+    def to_dict(self):
+        d = {}
+        d['id'] = self.key().id()
+        d['players'] = []
+        for player in db.get(self.players):
+            d['players'].append(player.to_dict())
+        return d
 
 class GameController(webapp.RequestHandler):
     def get(self, game_id):
         game_id = int(game_id)
-        state = State()
-        self.response.headers['Content-Type'] = 'application/json'
-        if game_id <= state.max_game_id:
-            self.response.out.write(simplejson.dumps(state.games[game_id]))
+        game = Game.get_by_id(game_id)
+        if game:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(game.to_dict()))
         else:
             self.error(404)
             self.response.out.write('No such game')
     def post(self, game_id):
         game_id = int(game_id)
-        state = State()
-        if game_id <= state.max_game_id:
-            self.response.headers['Content-Type'] = 'application/json'
+        game = Game.get_by_id(game_id)
+        if game:
             player_id = int(self.request.get('player_id'))
-            if player_id <= state.max_player_id:
-                state.games[game_id]['players'].append(state.players[player_id])
-                self.response.out.write(simplejson.dumps(state.games[game_id]))
+            player = Player.get_by_id(player_id)
+            if player:
+                if player.key() not in game.players:
+                    game.players.append(player.key())
+                    game.put()
+                self.response.headers['Content-Type'] = 'application/json'
+                self.response.out.write(simplejson.dumps(game.to_dict()))
             else:
                 self.error(412)
-                self.response.out.write('No such player_id')
+                self.response.out.write('No such player')
         else:
             self.error(404)
             self.response.out.write('No such game')
@@ -48,21 +53,22 @@ class GameController(webapp.RequestHandler):
 class PlayerController(webapp.RequestHandler):
     def get(self, player_id):
         player_id = int(player_id)
-        state = State()
+        player = Player.get_by_id(player_id)
         self.response.headers['Content-Type'] = 'application/json'
-        if player_id <= state.max_player_id:
-            self.response.out.write(simplejson.dumps(state.players[player_id]))
+        if player:
+            self.response.out.write(simplejson.dumps(player.to_dict()))
         else:
             self.error(404)
             self.response.out.write('No such player')
     def post(self, player_id):
         player_id = int(player_id)
-        state = State()
-        if player_id <= state.max_player_id:
+        player = Player.get_by_id(player_id)
+        if player:
             self.response.headers['Content-Type'] = 'application/json'
             side = int(self.request.get('side'))
-            state.players[player_id]['side'] = side
-            self.response.out.write(simplejson.dumps(state.players[player_id]))
+            player.side = side
+            player.put()
+            self.response.out.write(simplejson.dumps(player.to_dict()))
         else:
             self.error(404)
             self.response.write('No such player')
@@ -70,19 +76,17 @@ class PlayerController(webapp.RequestHandler):
 
 class RegisterController(webapp.RequestHandler):
     def get(self):
-        state = State()
-        state.max_player_id += 1
-        state.players[state.max_player_id] = {"id":state.max_player_id}
+        player = Player()
+        player.put()
         self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(simplejson.dumps(state.players[state.max_player_id]))
+        self.response.out.write(simplejson.dumps(player.to_dict()))
 
 class StartController(webapp.RequestHandler):
     def get(self):
-        state = State()
-        state.max_game_id += 1
-        state.games[state.max_game_id] = {"id":state.max_game_id,"players":[]}
+        game = Game()
+        game.put()
         self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(simplejson.dumps(state.games[state.max_game_id]))
+        self.response.out.write(simplejson.dumps(game.to_dict()))
 
 application = webapp.WSGIApplication(
                                      [
