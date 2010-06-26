@@ -113,6 +113,7 @@ public class Game {
                         this.context.getString(R.string.objective) + " "+ Integer.toString(i), 
                         power + " " + this.context.getString(R.string.objective_unit));
                 this.objectives.addObjective(objective);
+                this.start();
             }
         } catch (JSONException e) {
             e.printStackTrace();
