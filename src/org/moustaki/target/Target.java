@@ -40,6 +40,8 @@ public class Target extends MapActivity {
     private ObjectivesOverlay objectives;
     private PlayersOverlay playersSideOne;
     private PlayersOverlay playersSideTwo;
+    private ObjectivesOverlay bombs;
+    private ObjectivesOverlay guns;
     private Game game;
     private boolean running = true;
     
@@ -67,6 +69,16 @@ public class Target extends MapActivity {
         Drawable drawable = this.getResources().getDrawable(R.drawable.persuadotron);
         this.objectives = new ObjectivesOverlay(drawable, this);
         this.mv.getOverlays().add(this.objectives);
+        
+        // Setting bombs overlay
+        Drawable drawableBomb = this.getResources().getDrawable(R.drawable.bomb);
+        this.bombs = new ObjectivesOverlay(drawableBomb, this);
+        this.mv.getOverlays().add(this.bombs);
+        
+        // Setting guns overlay
+        Drawable drawableGun = this.getResources().getDrawable(R.drawable.skull);
+        this.guns = new ObjectivesOverlay(drawableGun, this);
+        this.mv.getOverlays().add(this.guns);
         
         // Setting other players overlay
         Drawable drawableHuman = this.getResources().getDrawable(R.drawable.human);
@@ -137,6 +149,8 @@ public class Target extends MapActivity {
         switch (item.getItemId()) {
         case MENU_ADD_OBJECTIVES:
             this.objectives.addRandomObjectives();
+            this.guns.addRandomItems(10, "Gun");
+            this.bombs.addRandomItems(10, "Bomb");
             return true;
         case MENU_QUIT:
             this.running = false;

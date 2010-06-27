@@ -75,6 +75,19 @@ public class ObjectivesOverlay extends ItemizedOverlay {
         }
         return n;
     }
+    
+    public int addRandomItems(int n, String title) {
+        objectives.clear();
+        Objective objective = null;
+        GeoPoint point = null;
+        // Adding n items
+        for (int i=0;i<n;i++) {
+            point = this.getRandomLocationInCurrentMap();
+            objective = new Objective(i, point, title + " " + i);
+            this.addObjective(objective);
+        }
+        return n;
+    }
 
     public GeoPoint getRandomLocationInCurrentMap() {
         MapView mv = this.context.getMapView();

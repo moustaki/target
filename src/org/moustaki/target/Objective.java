@@ -23,6 +23,11 @@ public class Objective extends OverlayItem {
         this.power = power;
     }
     
+    public Objective(int id_in_game, GeoPoint point, String title) {
+        super(point, title, "");
+        this.id_in_game = id_in_game;
+    }
+    
     public int getPower() {
         return this.power;
     }
