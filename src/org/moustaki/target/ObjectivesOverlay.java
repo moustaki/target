@@ -18,19 +18,11 @@ public class ObjectivesOverlay extends ItemizedOverlay {
 
     private ArrayList<Objective> objectives = new ArrayList<Objective>();
     private Target context;
-    private static ObjectivesOverlay instance = null;
 
     public ObjectivesOverlay(Drawable d, Target c) {
         super(boundCenterBottom(d));
         this.context = c;
         populate();
-    }
-    
-    public static ObjectivesOverlay getObjectivesOverlay(Drawable d, Target c) {
-        if (instance == null) {
-            instance = new ObjectivesOverlay(d, c);
-        }
-        return instance;
     }
     
     public void clear() {

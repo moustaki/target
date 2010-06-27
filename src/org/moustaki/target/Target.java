@@ -58,14 +58,14 @@ public class Target extends MapActivity {
         // Setting location tracking
         this.lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Drawable selfDrawable = this.getResources().getDrawable(R.drawable.self);
-        ThiefOverlay thiefOverlay = ThiefOverlay.getThiefOverlay(selfDrawable, this);
-        this.mv.getOverlays().add(thiefOverlay);
-        this.ll = new TargetLocationListener(this, thiefOverlay);
+        SelfOverlay selfOverlay = new SelfOverlay(selfDrawable, this);
+        this.mv.getOverlays().add(selfOverlay);
+        this.ll = new TargetLocationListener(this, selfOverlay);
         this.lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll); // Should be LocationManager.GPS_PROVIDER
         
         // Setting objectives overlay
         Drawable drawable = this.getResources().getDrawable(R.drawable.persuadotron);
-        this.objectives = ObjectivesOverlay.getObjectivesOverlay(drawable, this);
+        this.objectives = new ObjectivesOverlay(drawable, this);
         this.mv.getOverlays().add(this.objectives);
         
         // Setting other players overlay

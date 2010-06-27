@@ -19,13 +19,13 @@ public class TargetLocationListener implements LocationListener {
 	private GeoPoint currentLocation;
 	private Context context;
 	private boolean firstUpdateReceived = false;
-	private ThiefOverlay thiefOverlay;
+	private SelfOverlay selfOverlay;
 	
-	public TargetLocationListener(Target context, ThiefOverlay thiefOverlay) {
+	public TargetLocationListener(Target context, SelfOverlay selfOverlay) {
 		this.mc = context.getMapController();
 		this.mv = context.getMapView();
 		this.context = context;
-		this.thiefOverlay = thiefOverlay;
+		this.selfOverlay = selfOverlay;
 	}
 	
 	@Override
@@ -45,7 +45,7 @@ public class TargetLocationListener implements LocationListener {
             this.mv.invalidate();
             
             OverlayItem thief = new OverlayItem(this.currentLocation, this.context.getString(R.string.self_title), "");
-            this.thiefOverlay.addOverlay(thief);
+            this.selfOverlay.addOverlay(thief);
 		}
 	}
 	
