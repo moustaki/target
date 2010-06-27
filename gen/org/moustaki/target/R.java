@@ -28,10 +28,12 @@ public final class R {
         public static final int app_name=0x7f040000;
         public static final int bad_guys=0x7f040001;
         public static final int good_guys=0x7f040002;
-        public static final int objective=0x7f040004;
-        public static final int objective_action=0x7f040005;
-        public static final int objective_unit=0x7f040006;
-        public static final int self_title=0x7f040007;
+        public static final int new_objectives=0x7f040004;
+        public static final int objective=0x7f040006;
+        public static final int objective_action=0x7f040007;
+        public static final int objective_unit=0x7f040008;
+        public static final int self_title=0x7f040009;
         public static final int side_picker=0x7f040003;
+        public static final int start_game=0x7f040005;
     }
 }

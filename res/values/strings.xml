@@ -4,6 +4,8 @@
    	<string name="bad_guys">Alien</string>
    	<string name="good_guys">Human</string>
    	<string name="side_picker">Pick a side</string>
+   	<string name="new_objectives">New objectives</string>
+   	<string name="start_game">Start game</string>
    	<string name="objective">Persuadotron</string>
    	<string name="objective_action">Build the persuadotron!</string>
    	<string name="objective_unit">Watt</string>

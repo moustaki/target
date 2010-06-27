@@ -116,11 +116,11 @@ public class Target extends MapActivity {
         if (!this.game.isStarted()) {
             // Game not yet started
             if (this.game.isGameMaster()) {
-                menu.add(0, MENU_ADD_OBJECTIVES, 0, "New objectives");
+                menu.add(0, MENU_ADD_OBJECTIVES, 0, this.getString(R.string.new_objectives));
             }
             if (this.objectives.size() > 0 && this.game.isGameMaster()) {
                 // Some objectives available, and we are the master
-                menu.add(0, MENU_START_GAME, 0, "Start game");
+                menu.add(0, MENU_START_GAME, 0, this.getString(R.string.start_game));
             }
         } else {
             // Game started
