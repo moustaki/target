@@ -29,6 +29,7 @@ class Game(db.Model):
             d['objectives'].append(objective.to_dict())
         return d
 class Objective(db.Model):
+    type = db.StringProperty()
     game_id = db.IntegerProperty()
     id_in_game = db.IntegerProperty()
     power = db.IntegerProperty()
@@ -36,6 +37,7 @@ class Objective(db.Model):
     longitude = db.IntegerProperty()
     def to_dict(self):
         d = {}
+        d['type'] = self.type
         d['id'] = self.key().id()
         d['id_in_game'] = self.id_in_game
         d['power'] = self.power
@@ -106,11 +108,13 @@ class ObjectivesController(webapp.RequestHandler):
         game_id = int(self.request.get('game_id'))
         game = Game.get_by_id(game_id)
         if game:
+            type = self.request.get('type')
             id_in_game = int(self.request.get('id_in_game'))
             power = int(self.request.get('power'))
             latitude = int(self.request.get('latitude'))
             longitude = int(self.request.get('longitude')) 
             objective = Objective()
+            objective.type = type
             objective.game_id = game_id
             objective.id_in_game = id_in_game
             objective.power = power

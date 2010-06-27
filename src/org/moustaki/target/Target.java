@@ -91,6 +91,8 @@ public class Target extends MapActivity {
         //this.game = new Game("http://moustaki-target.appspot.com", this);
         this.game = new Game("http://192.168.1.67:1234", this);
         this.game.setObjectives(this.objectives);
+        this.game.setGuns(this.guns);
+        this.game.setBombs(this.bombs);
         this.game.setHumanPlayers(this.playersSideOne);
         this.game.setAlienPlayers(this.playersSideTwo);
         this.mv.getOverlays().add(this.playersSideOne);

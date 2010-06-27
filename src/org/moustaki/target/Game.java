@@ -27,6 +27,8 @@ public class Game {
     private boolean isGameMaster;
     private boolean isStarted = false;
     private ObjectivesOverlay objectives;
+    private ObjectivesOverlay guns;
+    private ObjectivesOverlay bombs;
     private PlayersOverlay humanPlayers;
     private PlayersOverlay alienPlayers;
     private Target context;
@@ -56,11 +58,26 @@ public class Game {
         this.objectives = objectives;
     }
     
+    public void setGuns(ObjectivesOverlay guns) {
+        this.guns = guns;
+    }
+    
+    public void setBombs(ObjectivesOverlay bombs) {
+        this.bombs = bombs;
+    }
+    
     public boolean start() {
         this.isStarted = true;
+        // @todo - make sure other clients don't try to register in the middle of that
         if (this.isGameMaster) {
             for(Objective objective : this.objectives.getObjectives()) {
-                registerObjective(objective);
+                registerObjective(objective, "objective");
+            }
+            for(Objective gun : this.guns.getObjectives()) {
+                registerObjective(gun, "gun");
+            }
+            for(Objective bomb : this.guns.getObjectives()) {
+                registerObjective(bomb, "bomb");
             }
         }
         return true;
@@ -126,18 +143,37 @@ public class Game {
             }
             for (int i = 0; i < response.getJSONArray("objectives").length(); i++) {
                 JSONObject o = response.getJSONArray("objectives").getJSONObject(i);
-                int latitude = o.getInt("latitude");
-                int longitude = o.getInt("longitude");
-                GeoPoint point = new GeoPoint(latitude, longitude);
-                int power = o.getInt("power");
-                int idInGame = o.getInt("id_in_game");
-                int id = o.getInt("id");
-                Objective objective = new Objective(id, idInGame, point, power,
-                        this.context.getString(R.string.objective) + " "+ Integer.toString(i), 
-                        power + " " + this.context.getString(R.string.objective_unit));
-                this.objectives.addObjective(objective);
-                this.start();
+                String type = o.getString("type");
+                if (type.equals("objective")) {
+                    int latitude = o.getInt("latitude");
+                    int longitude = o.getInt("longitude");
+                    GeoPoint point = new GeoPoint(latitude, longitude);
+                    int power = o.getInt("power");
+                    int idInGame = o.getInt("id_in_game");
+                    int id = o.getInt("id");
+                    Objective objective = new Objective(id, idInGame, point, power,
+                            this.context.getString(R.string.objective) + " "+ Integer.toString(i), 
+                            power + " " + this.context.getString(R.string.objective_unit));
+                    this.objectives.addObjective(objective);
+                } else if (type.equals("gun")) {
+                    int latitude = o.getInt("latitude");
+                    int longitude = o.getInt("longitude");
+                    GeoPoint point = new GeoPoint(latitude, longitude);
+                    int idInGame = o.getInt("id_in_game");
+                    int id = o.getInt("id");
+                    Objective objective = new Objective(id, idInGame, point, "Gun " + idInGame);
+                    this.guns.addObjective(objective);
+                } else if (type.equals("bomb")) {
+                    int latitude = o.getInt("latitude");
+                    int longitude = o.getInt("longitude");
+                    GeoPoint point = new GeoPoint(latitude, longitude);
+                    int idInGame = o.getInt("id_in_game");
+                    int id = o.getInt("id");
+                    Objective objective = new Objective(id, idInGame, point, "Bomb " + idInGame);
+                    this.bombs.addObjective(objective);
+                }
             }
+            this.start();
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -157,13 +193,14 @@ public class Game {
         return false;
     }
     
-    public boolean registerObjective(Objective objective) {
+    public boolean registerObjective(Objective objective, String type) {
         HashMap<String,String> data = new HashMap<String,String>();
         data.put("game_id", ""+this.gameId);
         data.put("id_in_game", ""+objective.getIdInGame());
         data.put("power", ""+objective.getPower());
         data.put("latitude", ""+objective.getPoint().getLatitudeE6());
         data.put("longitude", ""+objective.getPoint().getLongitudeE6());
+        data.put("type", type);
         JSONObject response = this.postJSON("/objectives", data);
         try {
             objective.setId(response.getInt("id"));
