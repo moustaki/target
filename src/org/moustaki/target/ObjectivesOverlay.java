@@ -23,6 +23,7 @@ public class ObjectivesOverlay extends ItemizedOverlay {
     public ObjectivesOverlay(Drawable d, Target c) {
         super(boundCenterBottom(d));
         this.context = c;
+        populate();
     }
     
     public static ObjectivesOverlay getObjectivesOverlay(Drawable d, Target c) {

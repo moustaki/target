@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,14 +31,17 @@ public class Target extends MapActivity {
     private static final int MENU_ADD_OBJECTIVES = 0;
     private static final int MENU_QUIT = 1;
     private static final int MENU_START_GAME = 2;
-    private static final int MENU_GET_OBJECTIVE = 3; 
+    private static final int MENU_GET_OBJECTIVE = 3;
     
     private LocationManager lm;
     private TargetLocationListener ll;
     private MapController mc;
     private MapView mv;
     private ObjectivesOverlay objectives;
+    private PlayersOverlay playersSideOne;
+    private PlayersOverlay playersSideTwo;
     private Game game;
+    private boolean running = true;
     
     /** Called when the activity is first created. */
     @Override
@@ -53,20 +57,32 @@ public class Target extends MapActivity {
         
         // Setting location tracking
         this.lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        this.ll = new TargetLocationListener(this);
+        Drawable selfDrawable = this.getResources().getDrawable(R.drawable.self);
+        ThiefOverlay thiefOverlay = ThiefOverlay.getThiefOverlay(selfDrawable, this);
+        this.mv.getOverlays().add(thiefOverlay);
+        this.ll = new TargetLocationListener(this, thiefOverlay);
         this.lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll); // Should be LocationManager.GPS_PROVIDER
         
         // Setting objectives overlay
         Drawable drawable = this.getResources().getDrawable(R.drawable.persuadotron);
         this.objectives = ObjectivesOverlay.getObjectivesOverlay(drawable, this);
-        List<Overlay> overlays = this.mv.getOverlays();
-        overlays.add(this.objectives);
+        this.mv.getOverlays().add(this.objectives);
+        
+        // Setting other players overlay
+        Drawable drawableHuman = this.getResources().getDrawable(R.drawable.human);
+        this.playersSideOne = new PlayersOverlay(drawableHuman, this);
+        Drawable drawableAlien = this.getResources().getDrawable(R.drawable.alien);
+        this.playersSideTwo = new PlayersOverlay(drawableAlien, this);
         
         // Setting up game context
         // @todo - shouldn't be hardcoded here
         //this.game = new Game("http://moustaki-target.appspot.com", this);
         this.game = new Game("http://192.168.1.67:1234", this);
         this.game.setObjectives(this.objectives);
+        this.game.setHumanPlayers(this.playersSideOne);
+        this.game.setAlienPlayers(this.playersSideTwo);
+        this.mv.getOverlays().add(this.playersSideOne);
+        this.mv.getOverlays().add(this.playersSideTwo);
         
         // Registering user
         this.game.register();
@@ -78,6 +94,9 @@ public class Target extends MapActivity {
         
         // Human or Alien?
         this.pickSide();
+        
+        // Start syncing locations
+        this.syncLocations();
     }
     
     public MapView getMapView() {
@@ -86,6 +105,10 @@ public class Target extends MapActivity {
     
     public MapController getMapController() {
         return this.mc;
+    }
+    
+    public TargetLocationListener getLocationListener() {
+        return this.ll;
     }
     
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -116,6 +139,7 @@ public class Target extends MapActivity {
             this.objectives.addRandomObjectives();
             return true;
         case MENU_QUIT:
+            this.running = false;
             this.finish();
             return true;
         case MENU_START_GAME:
@@ -185,6 +209,36 @@ public class Target extends MapActivity {
             }  
         });
         gameIdInput.show();
+    }
+    
+    public void syncLocations() {
+        // @todo - those threads must die when we quit
+        Thread postPlayerLocation = new Thread() {
+            public void run() {
+                try {
+                    while (running) {
+                        getGame().postPlayerLocation();
+                        Thread.sleep(1000 * 10);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        postPlayerLocation.start();
+        Thread updatePlayersLocation = new Thread() {
+            public void run() {
+                try {
+                    while (running) {
+                        Thread.sleep(1000 * 60);
+                        getGame().updatePlayersLocations();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        updatePlayersLocation.start();
     }
     
     @Override

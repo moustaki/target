@@ -5,9 +5,13 @@ from google.appengine.ext import db
 
 class Player(db.Model):
     side = db.IntegerProperty()
+    latitude = db.IntegerProperty()
+    longitude = db.IntegerProperty()
     def to_dict(self):
         d = {}
         d['id'] = self.key().id()
+        d['latitude'] = self.latitude
+        d['longitude'] = self.longitude
         if self.side:
             d['side'] = self.side
         return d
@@ -83,8 +87,14 @@ class PlayerController(webapp.RequestHandler):
         player = Player.get_by_id(player_id)
         if player:
             self.response.headers['Content-Type'] = 'application/json'
-            side = int(self.request.get('side'))
-            player.side = side
+            if self.request.get('side'):
+                side = int(self.request.get('side'))
+                player.side = side
+            if self.request.get('latitude'):
+                latitude = int(self.request.get('latitude'))
+                longitude = int(self.request.get('longitude'))
+                player.latitude = latitude
+                player.longitude = longitude
             player.put()
             self.response.out.write(simplejson.dumps(player.to_dict()))
         else:

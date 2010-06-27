@@ -24,11 +24,21 @@ public class Game {
     private boolean isGameMaster;
     private boolean isStarted = false;
     private ObjectivesOverlay objectives;
+    private PlayersOverlay humanPlayers;
+    private PlayersOverlay alienPlayers;
     private Target context;
     
     public Game(String base, Target context) {
         this.context = context;
         this.base = base;
+    }
+    
+    public void setHumanPlayers(PlayersOverlay players) {
+        this.humanPlayers = players;
+    }
+    
+    public void setAlienPlayers(PlayersOverlay players) {
+        this.alienPlayers = players;
     }
     
     public void setObjectives(ObjectivesOverlay objectives) {
@@ -37,8 +47,10 @@ public class Game {
     
     public boolean start() {
         this.isStarted = true;
-        for(Objective objective : this.objectives.getObjectives()) {
-            registerObjective(objective);
+        if (this.isGameMaster) {
+            for(Objective objective : this.objectives.getObjectives()) {
+                registerObjective(objective);
+            }
         }
         return true;
     }
@@ -149,6 +161,44 @@ public class Game {
             e.printStackTrace();
         }
         return false;
+    }
+    
+    public boolean postPlayerLocation() {
+        GeoPoint point = this.context.getLocationListener().getCurrentLocation();
+        if (point != null) {
+            HashMap<String,String> data = new HashMap<String,String>();
+            data.put("latitude", ""+point.getLatitudeE6());
+            data.put("longitude", ""+point.getLongitudeE6());
+            // setting geo location
+            JSONObject response = this.postJSON("/players/" + this.playerId, data);
+            if (response == null) return false;
+        }
+        return true;
+    }
+    
+    public boolean updatePlayersLocations() {
+        // getting geo locations
+        JSONObject response = this.getJSON("/games/" + this.gameId);
+        try {
+            this.alienPlayers.clear();
+            this.humanPlayers.clear();
+            for (int i = 0; i < response.getJSONArray("players").length(); i++) {
+                JSONObject p = response.getJSONArray("players").getJSONObject(i);
+                int id = p.getInt("id");
+                if (id != this.playerId) {
+                    int latitude = p.getInt("latitude");
+                    int longitude = p.getInt("longitude");
+                    int side = p.getInt("side") - 1; // @todo weird side = 0 bug
+                    GeoPoint playerPoint = new GeoPoint(latitude, longitude);
+                    Player player = new Player(p.getInt("id"), side, playerPoint, ""+p.getInt("id"), ""); 
+                    if (side == 0) this.humanPlayers.addPlayer(player);
+                    if (side == 1) this.alienPlayers.addPlayer(player);
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return true;
     }
     
     private JSONObject getJSON(String path) {

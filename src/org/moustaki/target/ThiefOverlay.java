@@ -17,6 +17,7 @@ public class ThiefOverlay extends ItemizedOverlay {
     public ThiefOverlay(Drawable d, Context c) {
         super(boundCenterBottom(d));
         this.context = c;
+        populate();
     }
     
     public static ThiefOverlay getThiefOverlay(Drawable d, Context c) {
