@@ -124,8 +124,8 @@ public class Target extends MapActivity {
             }
         } else {
             // Game started
-            // Need to tell to the user if the GPS connection has dropped, here
-            if (this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 20.0) != null) {
+            if (this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 100.0) != null
+                    && this.game.isAlien()) {
                 menu.add(0, MENU_GET_OBJECTIVE, 0, this.getString(R.string.objective_action));
             }
         }

@@ -17,6 +17,9 @@ import com.google.android.maps.GeoPoint;
 
 public class Game {
     
+    private static final int HUMAN = 0;
+    private static final int ALIEN = 1;
+    
     private String base = null;
     private int playerId;
     private int gameId;
@@ -31,6 +34,14 @@ public class Game {
     public Game(String base, Target context) {
         this.context = context;
         this.base = base;
+    }
+    
+    public boolean isHuman() {
+        return (this.getPlayerSide() == Game.HUMAN);
+    }
+    
+    public boolean isAlien() {
+        return (this.getPlayerSide() == Game.ALIEN);
     }
     
     public void setHumanPlayers(PlayersOverlay players) {
