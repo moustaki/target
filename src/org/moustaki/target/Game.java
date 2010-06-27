@@ -76,7 +76,7 @@ public class Game {
             for(Objective gun : this.guns.getObjectives()) {
                 registerObjective(gun, "gun");
             }
-            for(Objective bomb : this.guns.getObjectives()) {
+            for(Objective bomb : this.bombs.getObjectives()) {
                 registerObjective(bomb, "bomb");
             }
         }
