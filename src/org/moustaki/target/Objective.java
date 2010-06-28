@@ -1,7 +1,11 @@
 package org.moustaki.target;
 
 import java.util.ArrayList;
+
+import android.graphics.Canvas;
+
 import com.google.android.maps.GeoPoint;
+import com.google.android.maps.MapView;
 import com.google.android.maps.OverlayItem;
 
 public class Objective extends OverlayItem {

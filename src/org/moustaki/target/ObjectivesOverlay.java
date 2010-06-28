@@ -6,6 +6,7 @@ import java.util.Random;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 
 import com.google.android.maps.GeoPoint;
@@ -37,7 +38,7 @@ public class ObjectivesOverlay extends ItemizedOverlay {
     public ArrayList<Objective> getObjectives() {
         return this.objectives;
     }
-
+    
     @Override
     protected OverlayItem createItem(int i) {
         return this.objectives.get(i);
@@ -56,6 +57,30 @@ public class ObjectivesOverlay extends ItemizedOverlay {
         dialog.setMessage(item.getSnippet());
         dialog.show();
         return true;
+    }
+    
+    public Objective getClosestObjectiveInRange(GeoPoint point, double range) {
+        Objective closest = null;
+        if (point != null) {
+            double mindistance = 0.0;
+            for (Objective objective : objectives) {
+                double distance = DistanceCalculator.distance(point, objective.getPoint());
+                if (mindistance == 0.0) {
+                    mindistance = distance;
+                    closest = objective;
+                } else {
+                    if (distance < mindistance) {
+                        mindistance = distance;
+                        closest = objective;
+                    }
+                }
+            }
+            boolean isInRange = (mindistance <= range);
+            if (!isInRange) {
+                closest = null;
+            }
+        }
+        return closest;
     }
     
     public int addRandomObjectives() {
@@ -103,28 +128,5 @@ public class ObjectivesOverlay extends ItemizedOverlay {
         GeoPoint randomPoint = new GeoPoint(randomLatitude, randomLongitude);
         
         return randomPoint;
-    }
-    
-    public Objective getClosestObjectiveInRange(GeoPoint point, double range) {
-        if (point != null) {
-            double mindistance = 0;
-            Objective closest = null;
-            for (Objective objective : objectives) {
-                double distance = DistanceCalculator.distance(point, objective.getPoint());
-                if (mindistance == 0) {
-                    mindistance = distance;
-                    closest = objective;
-                } else {
-                    if (distance < mindistance) {
-                        mindistance = distance;
-                        closest = objective;
-                    }
-                }
-            }
-            if (mindistance < range) {
-                return closest;
-            }
-        }
-        return null;
     }
 }

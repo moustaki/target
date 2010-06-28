@@ -1,12 +1,14 @@
 package org.moustaki.target;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
 import org.json.JSONException;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
@@ -14,9 +16,11 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.text.Editable;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -31,13 +35,14 @@ public class Target extends MapActivity {
     private static final int MENU_ADD_OBJECTIVES = 0;
     private static final int MENU_QUIT = 1;
     private static final int MENU_START_GAME = 2;
-    private static final int MENU_GET_OBJECTIVE = 3;
+    private static final int MENU_ACTIVATE_OBJECTIVE = 3;
     
     private LocationManager lm;
     private TargetLocationListener ll;
     private MapController mc;
     private MapView mv;
     private ObjectivesOverlay objectives;
+    private ActivatedObjectivesOverlay activatedObjectives;
     private PlayersOverlay playersSideOne;
     private PlayersOverlay playersSideTwo;
     private ObjectivesOverlay bombs;
@@ -68,6 +73,10 @@ public class Target extends MapActivity {
         // Setting objectives overlay
         Drawable drawable = this.getResources().getDrawable(R.drawable.persuadotron);
         this.objectives = new ObjectivesOverlay(drawable, this);
+        this.mv.getOverlays().add(this.objectives);
+        
+        // Setting activated objectives overlay
+        this.activatedObjectives = new ActivatedObjectivesOverlay(drawable, this);
         this.mv.getOverlays().add(this.objectives);
         
         // Setting bombs overlay
@@ -138,9 +147,9 @@ public class Target extends MapActivity {
             }
         } else {
             // Game started
-            if (this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 100.0) != null
+            if ((this.getObjectiveInRange() != null) 
                     && this.game.isAlien()) {
-                menu.add(0, MENU_GET_OBJECTIVE, 0, this.getString(R.string.objective_action));
+                menu.add(0, MENU_ACTIVATE_OBJECTIVE, 0, this.getString(R.string.objective_action));
             }
         }
         menu.add(0, MENU_QUIT, 0, "Quit");
@@ -161,8 +170,63 @@ public class Target extends MapActivity {
         case MENU_START_GAME:
             Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
             this.game.start();
+            return true;
+        case MENU_ACTIVATE_OBJECTIVE:
+            this.activateObjective();
         }
         return false;
+    }
+    
+    public void activateObjective() {
+        final ProgressDialog progress = new ProgressDialog(this);
+        progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progress.setMessage("Activating...");
+        progress.setCancelable(false);
+        progress.show();
+        final Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                int elapsed = msg.what;
+                if (elapsed > 0 && elapsed < 60) {
+                    progress.setProgress((elapsed * 100 / 60));
+                } else if (elapsed == -1) {
+                    progress.dismiss();
+                    Toast.makeText(Target.this, "You left the area. Stopping the activation.", 1).show();
+                } else if (elapsed == 999) {
+                    progress.dismiss();
+                    Toast.makeText(Target.this, "Persuadotron activated!!", 1).show();
+                }
+            }
+        };
+        Thread activating = new Thread() {
+            public void run() {
+                try {
+                    Objective objective = getObjectiveInRange();
+                    int start = getUnixTime();
+                    int current = start;
+                    while (current - start < 60) {
+                        if (objective != getObjectiveInRange()) {
+                            handler.sendEmptyMessage(-1);
+                            return;
+                        }
+                        current = getUnixTime();
+                        int elapsed = (current - start);
+                        handler.sendEmptyMessage(elapsed);
+                        Thread.sleep(1000);
+                    }
+                    handler.sendEmptyMessage(999);
+                    getActivatedObjectives().addObjective(objective);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        Toast.makeText(this, "Activating persuadotron... Wait one minute in the area...", Toast.LENGTH_LONG).show();
+        activating.start();
+    }
+    
+    private int getUnixTime() {
+        return (int) (System.currentTimeMillis() / 1000L);
     }
     
     public Game getGame() {
@@ -171,6 +235,14 @@ public class Target extends MapActivity {
     
     public ObjectivesOverlay getObjectives() {
         return this.objectives;
+    }
+    
+    public ActivatedObjectivesOverlay getActivatedObjectives() {
+        return this.activatedObjectives;
+    }
+    
+    public Objective getObjectiveInRange() {
+        return this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 100.0);
     }
     
     public boolean pickSide() {
