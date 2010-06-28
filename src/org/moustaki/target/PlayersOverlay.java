@@ -38,13 +38,13 @@ public class PlayersOverlay extends ItemizedOverlay {
         return this.players.size();
     }
     
-    @Override
-    protected boolean onTap(int index) {
-        OverlayItem item = this.players.get(index);
-        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-        dialog.setTitle(item.getTitle());
-        dialog.setMessage(item.getSnippet());
-        dialog.show();
-        return true;
-    }
+    //@Override
+    //protected boolean onTap(int index) {
+    //    OverlayItem item = this.players.get(index);
+    //    AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+    //    dialog.setTitle(item.getTitle());
+    //    dialog.setMessage(item.getSnippet());
+    //    dialog.show();
+    //    return true;
+    //}
 }
