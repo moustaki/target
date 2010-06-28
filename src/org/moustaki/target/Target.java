@@ -77,7 +77,7 @@ public class Target extends MapActivity {
         
         // Setting activated objectives overlay
         this.activatedObjectives = new ActivatedObjectivesOverlay(drawable, this);
-        this.mv.getOverlays().add(this.objectives);
+        this.mv.getOverlays().add(this.activatedObjectives);
         
         // Setting bombs overlay
         Drawable drawableBomb = this.getResources().getDrawable(R.drawable.bomb);

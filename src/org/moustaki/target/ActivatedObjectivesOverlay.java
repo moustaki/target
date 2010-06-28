@@ -38,16 +38,18 @@ public class ActivatedObjectivesOverlay extends com.google.android.maps.Itemized
     
     public void draw(Canvas canvas, MapView mv, boolean shadow) {
         Paint paint = new Paint();
-        paint.setARGB(150, 255, 255, 255);
+        paint.setARGB(80, 255, 0, 0);
+        paint.setAntiAlias(true);
         Projection projection = mv.getProjection();
         Point point = new Point();
         for (Objective objective : this.objectives) {
             GeoPoint gp = objective.getPoint();
             projection.toPixels(gp, point);
-            int radius = this.metersToRadius(100, mv, (gp.getLatitudeE6() / 1000000.0));
+            int radius = this.metersToRadius(150, mv, (gp.getLatitudeE6() / 1000000.0));
             canvas.drawCircle(point.x, point.y, radius, paint);
         }
         super.draw(canvas, mv, shadow);
+        // @todo maybe boundCenter() for all items on map?
     }
     
     private int metersToRadius(float meters, MapView map, double latitude) {
