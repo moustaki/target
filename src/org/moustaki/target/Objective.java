@@ -10,9 +10,10 @@ import com.google.android.maps.OverlayItem;
 
 public class Objective extends OverlayItem {
     
-    private int id;
+    private int id = -1;
     private int id_in_game;
     private int power;
+    private boolean activated = false;
     
     public Objective(int id, int id_in_game, GeoPoint point, int power, String title, String description) {
         super(point, title, description);
@@ -52,5 +53,13 @@ public class Objective extends OverlayItem {
     
     public int getId() {
         return this.id;
+    }
+    
+    public void setActivated(boolean activated) {
+        this.activated = activated;
+    }
+    
+    public boolean isActivated() {
+        return this.activated;
     }
 }

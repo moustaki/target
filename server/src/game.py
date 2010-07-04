@@ -2,6 +2,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson
 from google.appengine.ext import db
+import time
 
 class Player(db.Model):
     side = db.IntegerProperty()
@@ -35,6 +36,7 @@ class Objective(db.Model):
     power = db.IntegerProperty()
     latitude = db.IntegerProperty()
     longitude = db.IntegerProperty()
+    activated = db.BooleanProperty(default = False)
     def to_dict(self):
         d = {}
         d['type'] = self.type
@@ -43,6 +45,7 @@ class Objective(db.Model):
         d['power'] = self.power
         d['latitude'] = self.latitude
         d['longitude'] = self.longitude
+        d['activated'] = self.activated
         return d
 
 class GameController(webapp.RequestHandler):
@@ -78,8 +81,8 @@ class PlayerController(webapp.RequestHandler):
     def get(self, player_id):
         player_id = int(player_id)
         player = Player.get_by_id(player_id)
-        self.response.headers['Content-Type'] = 'application/json'
         if player:
+            self.response.headers['Content-Type'] = 'application/json'
             self.response.out.write(simplejson.dumps(player.to_dict()))
         else:
             self.error(404)
@@ -103,7 +106,39 @@ class PlayerController(webapp.RequestHandler):
             self.error(404)
             self.response.write('No such player')
 
-class ObjectivesController(webapp.RequestHandler):
+class ActivatedObjectivesController(webapp.RequestHandler):
+    def get(self):
+        activated = db.GqlQuery("SELECT * FROM Objective WHERE activated = TRUE")
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(simplejson.dumps([ a.to_dict() for a in activated]))
+
+class ObjectivesShowController(webapp.RequestHandler):
+    def get(self, objective_id):
+        objective_id = int(objective_id)
+        objective = Objective.get_by_id(objective_id)
+        if objective:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(objective.to_dict()))
+        else:
+            self.error(404)
+            self.response.out.write('No such objective')
+    def post(self, objective_id):
+        objective_id = int(objective_id)
+        objective = Objective.get_by_id(objective_id)
+        if objective:
+            if self.request.get('activated') == "true":
+                activated = True
+            elif self.request.get('activated') == "false":
+                activated = False
+            objective.activated = activated
+            objective.put()
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(objective.to_dict())) 
+        else:
+            self.error(404)
+            self.response.out.write('No such objective')
+
+class ObjectivesListController(webapp.RequestHandler):
     def post(self):
         game_id = int(self.request.get('game_id'))
         game = Game.get_by_id(game_id)
@@ -145,13 +180,43 @@ class StartController(webapp.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(simplejson.dumps(game.to_dict()))
 
+class ResetController(webapp.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        keep_on = True
+        try:
+            while keep_on:
+                q = db.GqlQuery("SELECT __key__ FROM Game")
+                c1 = q.count()
+                if (c1 > 0):
+                    db.delete(q.fetch(200))
+                q = db.GqlQuery("SELECT __key__ FROM Player")
+                c2 = q.count()
+                if (c2 > 0):
+                    db.delete(q.fetch(200))
+                q = db.GqlQuery("SELECT __key__ FROM Objective")
+                c3 = q.count()
+                if (c3 > 0):
+                    db.delete(q.fetch(200))
+                    keep_on = True
+                if (c1 + c2 + c3 == 0):
+                    keep_on = False
+            self.response.out.write('Done\n')
+        except Exception, e:
+            self.response.out.write(repr(e)+'\n')
+            pass
+
+
 application = webapp.WSGIApplication(
                                      [
                                         ('/games/(\d+)', GameController),
                                         ('/players/(\d+)', PlayerController),
                                         ('/register', RegisterController),
                                         ('/start', StartController),
-                                        ('/objectives', ObjectivesController)
+                                        ('/objectives', ObjectivesListController),
+                                        ('/objectives/(\d+)', ObjectivesShowController),
+                                        ('/objectives/activated', ActivatedObjectivesController),
+                                        ('/reset', ResetController)
                                      ],
                                      debug=True)
 

@@ -12,5 +12,9 @@ handlers:
    script: game.py
  - url: /start
    script: game.py
+ - url: /objectives/.*
+   script: game.py
  - url: /objectives
+   script: game.py
+ - url: /reset
    script: game.py

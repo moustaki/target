@@ -97,8 +97,8 @@ public class Target extends MapActivity {
         
         // Setting up game context
         // @todo - shouldn't be hardcoded here
-        //this.game = new Game("http://moustaki-target.appspot.com", this);
-        this.game = new Game("http://192.168.1.67:1234", this);
+        this.game = new Game("http://moustaki-target.appspot.com", this);
+        //this.game = new Game("http://192.168.1.67:1234", this);
         this.game.setObjectives(this.objectives);
         this.game.setGuns(this.guns);
         this.game.setBombs(this.bombs);

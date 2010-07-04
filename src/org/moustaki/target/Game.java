@@ -99,6 +99,24 @@ public class Game {
         return this.isGameMaster;
     }
     
+    public boolean activate(Objective objective) {
+        objective.setActivated(true);
+        HashMap<String,String> data = new HashMap<String,String>();
+        if (objective.isActivated()) {
+            data.put("activated", "true");
+        } else {
+            data.put("activated", "false");
+        }
+        JSONObject response = this.postJSON("/objectives/" + objective.getId(), data);
+        try {
+            objective.setId(response.getInt("id"));
+            return true;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
     public int register() {
         JSONObject response = this.getJSON("/register");
         try {

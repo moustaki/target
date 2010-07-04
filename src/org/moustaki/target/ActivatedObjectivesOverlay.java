@@ -29,6 +29,7 @@ public class ActivatedObjectivesOverlay extends com.google.android.maps.Itemized
 
     public void addObjective(Objective objective) {
         this.objectives.add(objective);
+        this.context.getGame().activate(objective);
         populate();
     }
     
