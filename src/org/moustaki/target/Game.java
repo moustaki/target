@@ -29,7 +29,9 @@ public class Game {
     private ActivatedObjectivesOverlay activatedObjectives;
     private ObjectivesOverlay objectives;
     private ObjectivesOverlay guns;
+    private ObjectivesOverlay takenGuns;
     private ObjectivesOverlay bombs;
+    private ObjectivesOverlay takenBombs;
     private PlayersOverlay humanPlayers;
     private PlayersOverlay alienPlayers;
     private Target context;
@@ -67,8 +69,16 @@ public class Game {
         this.guns = guns;
     }
     
+    public void setTakenGuns(ObjectivesOverlay takenGuns) {
+        this.takenGuns = takenGuns;
+    }
+    
     public void setBombs(ObjectivesOverlay bombs) {
         this.bombs = bombs;
+    }
+    
+    public void setTakenBombs(ObjectivesOverlay takenBombs) {
+        this.takenBombs = takenBombs;
     }
     
     public boolean start() {
@@ -128,7 +138,19 @@ public class Game {
             for (int i = 0; i < response.getJSONArray("objectives").length(); i++) {
                 JSONObject o = response.getJSONArray("objectives").getJSONObject(i);
                 Objective objective = this.objectives.findObjectiveById(o.getInt("id"));
-                this.activatedObjectives.addObjective(objective);
+                if (objective != null) {
+                    this.activatedObjectives.addObjective(objective);
+                }
+                objective = this.guns.findObjectiveById(o.getInt("id"));
+                if (objective != null) {
+                    this.takenGuns.addObjective(objective);
+                    this.guns.removeObjective(objective);
+                }
+                objective = this.bombs.findObjectiveById(o.getInt("id"));
+                if (objective != null) {
+                    this.takenBombs.addObjective(objective);
+                    this.bombs.removeObjective(objective);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();

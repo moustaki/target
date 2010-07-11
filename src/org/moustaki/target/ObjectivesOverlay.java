@@ -35,6 +35,11 @@ public class ObjectivesOverlay extends ItemizedOverlay {
         populate();
     }
     
+    public void removeObjective(Objective objective) {
+        this.objectives.remove(objective);
+        populate();
+    }
+    
     public ArrayList<Objective> getObjectives() {
         return this.objectives;
     }

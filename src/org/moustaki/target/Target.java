@@ -36,6 +36,8 @@ public class Target extends MapActivity {
     private static final int MENU_QUIT = 1;
     private static final int MENU_START_GAME = 2;
     private static final int MENU_ACTIVATE_OBJECTIVE = 3;
+    private static final int MENU_PICKUP_GUN = 4;
+    private static final int MENU_PICKUP_BOMB = 5;
     
     private LocationManager lm;
     private TargetLocationListener ll;
@@ -46,7 +48,9 @@ public class Target extends MapActivity {
     private PlayersOverlay playersSideOne;
     private PlayersOverlay playersSideTwo;
     private ObjectivesOverlay bombs;
+    private ObjectivesOverlay takenBombs;
     private ObjectivesOverlay guns;
+    private ObjectivesOverlay takenGuns;
     private Game game;
     private boolean running = true;
     
@@ -84,10 +88,20 @@ public class Target extends MapActivity {
         this.bombs = new ObjectivesOverlay(drawableBomb, this);
         this.mv.getOverlays().add(this.bombs);
         
+        // Setting picked up bombs overlay
+        Drawable drawablePickedUpBomb = this.getResources().getDrawable(R.drawable.bombtaken);
+        this.takenBombs = new ObjectivesOverlay(drawablePickedUpBomb, this);
+        this.mv.getOverlays().add(this.takenBombs);
+        
         // Setting guns overlay
         Drawable drawableGun = this.getResources().getDrawable(R.drawable.skull);
         this.guns = new ObjectivesOverlay(drawableGun, this);
         this.mv.getOverlays().add(this.guns);
+        
+        // Setting picked up guns overlay
+        Drawable drawablePickedUpGun = this.getResources().getDrawable(R.drawable.skulltaken);
+        this.takenGuns = new ObjectivesOverlay(drawablePickedUpGun, this);
+        this.mv.getOverlays().add(this.takenGuns);
         
         // Setting other players overlay
         Drawable drawableHuman = this.getResources().getDrawable(R.drawable.human);
@@ -102,7 +116,9 @@ public class Target extends MapActivity {
         this.game.setActivatedObjectives(this.activatedObjectives);
         this.game.setObjectives(this.objectives);
         this.game.setGuns(this.guns);
+        this.game.setTakenGuns(this.takenGuns);
         this.game.setBombs(this.bombs);
+        this.game.setTakenBombs(this.takenBombs);
         this.game.setHumanPlayers(this.playersSideOne);
         this.game.setAlienPlayers(this.playersSideTwo);
         this.mv.getOverlays().add(this.playersSideOne);
@@ -155,6 +171,14 @@ public class Target extends MapActivity {
                     && this.game.isAlien()) {
                 menu.add(0, MENU_ACTIVATE_OBJECTIVE, 0, this.getString(R.string.objective_action));
             }
+            if ((this.getGunInRange() != null)
+                    && this.game.isHuman()) {
+                menu.add(0, MENU_PICKUP_GUN, 0, "Get the gun");
+            }
+            if ((this.getBombInRange() != null)
+                    && this.game.isHuman()) {
+                menu.add(0, MENU_PICKUP_BOMB, 0, "Get the bomb");
+            }
         }
         menu.add(0, MENU_QUIT, 0, "Quit");
         return true;
@@ -177,8 +201,29 @@ public class Target extends MapActivity {
             return true;
         case MENU_ACTIVATE_OBJECTIVE:
             this.activateObjective();
+            return true;
+        case MENU_PICKUP_GUN:
+            this.pickupGun();
+            return true;
+        case MENU_PICKUP_BOMB:
+            this.pickupBomb();
+            return true;
         }
         return false;
+    }
+    
+    public void pickupGun() {
+        Objective gun = this.getGunInRange();
+        this.takenGuns.addObjective(gun);
+        this.guns.removeObjective(gun);
+        this.game.activate(gun);
+    }
+    
+    public void pickupBomb() {
+        Objective bomb = this.getBombInRange();
+        this.takenBombs.addObjective(bomb);
+        this.bombs.removeObjective(bomb);
+        this.game.activate(bomb);
     }
     
     public void activateObjective() {
@@ -220,6 +265,7 @@ public class Target extends MapActivity {
                     }
                     handler.sendEmptyMessage(999);
                     getActivatedObjectives().addObjective(objective);
+                    getGame().activate(objective);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -246,7 +292,18 @@ public class Target extends MapActivity {
     }
     
     public Objective getObjectiveInRange() {
+        // range for objectives: 100m
         return this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 100.0);
+    }
+    
+    public Objective getGunInRange() {
+        // range for guns: 50m
+        return this.guns.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 50.0);
+    }
+    
+    public Objective getBombInRange() {
+        // range for bombs: 50m
+        return this.bombs.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 50.0);
     }
     
     public boolean pickSide() {
