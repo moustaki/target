@@ -59,6 +59,15 @@ public class ObjectivesOverlay extends ItemizedOverlay {
         return true;
     }
     
+    public Objective findObjectiveById(int id) {
+        for (Objective objective : objectives) {
+            if (objective.getId() == id) {
+                return objective;
+            }
+        }
+        return null;
+    }
+    
     public Objective getClosestObjectiveInRange(GeoPoint point, double range) {
         Objective closest = null;
         if (point != null) {

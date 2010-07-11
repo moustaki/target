@@ -110,7 +110,7 @@ class ActivatedObjectivesController(webapp.RequestHandler):
     def get(self):
         activated = db.GqlQuery("SELECT * FROM Objective WHERE activated = TRUE")
         self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(simplejson.dumps([ a.to_dict() for a in activated]))
+        self.response.out.write(simplejson.dumps({'objectives': [ a.to_dict() for a in activated]}))
 
 class ObjectivesShowController(webapp.RequestHandler):
     def get(self, objective_id):

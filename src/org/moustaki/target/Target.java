@@ -97,8 +97,9 @@ public class Target extends MapActivity {
         
         // Setting up game context
         // @todo - shouldn't be hardcoded here
-        this.game = new Game("http://moustaki-target.appspot.com", this);
-        //this.game = new Game("http://192.168.1.67:1234", this);
+        //this.game = new Game("http://moustaki-target.appspot.com", this);
+        this.game = new Game("http://192.168.1.68:1234", this);
+        this.game.setActivatedObjectives(this.activatedObjectives);
         this.game.setObjectives(this.objectives);
         this.game.setGuns(this.guns);
         this.game.setBombs(this.bombs);
@@ -120,6 +121,9 @@ public class Target extends MapActivity {
         
         // Start syncing locations
         this.syncLocations();
+        
+        // Start syncing objectives
+        this.syncObjectivesStatus();
     }
     
     public MapView getMapView() {
@@ -300,12 +304,12 @@ public class Target extends MapActivity {
     }
     
     public void syncLocations() {
-        // @todo - those threads must die when we quit
         Thread postPlayerLocation = new Thread() {
             public void run() {
                 try {
                     while (running) {
                         getGame().postPlayerLocation();
+                        // post location every 10s
                         Thread.sleep(1000 * 10);
                     }
                 } catch (InterruptedException e) {
@@ -318,6 +322,7 @@ public class Target extends MapActivity {
             public void run() {
                 try {
                     while (running) {
+                        // update other players' locations every 60s
                         Thread.sleep(1000 * 60);
                         getGame().updatePlayersLocations();
                     }
@@ -327,6 +332,23 @@ public class Target extends MapActivity {
             }
         };
         updatePlayersLocation.start();
+    }
+    
+    public void syncObjectivesStatus() {
+        Thread syncObjectivesStatus = new Thread() {
+            public void run() {
+                try {
+                    while (running) {
+                        // get activated objectives every 10s
+                        Thread.sleep(1000 * 10);
+                        getGame().syncObjectivesStatus();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        syncObjectivesStatus.start();
     }
     
     @Override

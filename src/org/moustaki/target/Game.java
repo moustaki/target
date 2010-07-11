@@ -26,6 +26,7 @@ public class Game {
     private int playerSide;
     private boolean isGameMaster;
     private boolean isStarted = false;
+    private ActivatedObjectivesOverlay activatedObjectives;
     private ObjectivesOverlay objectives;
     private ObjectivesOverlay guns;
     private ObjectivesOverlay bombs;
@@ -56,6 +57,10 @@ public class Game {
     
     public void setObjectives(ObjectivesOverlay objectives) {
         this.objectives = objectives;
+    }
+    
+    public void setActivatedObjectives(ActivatedObjectivesOverlay activatedObjectives) {
+        this.activatedObjectives = activatedObjectives;
     }
     
     public void setGuns(ObjectivesOverlay guns) {
@@ -111,6 +116,20 @@ public class Game {
         try {
             objective.setId(response.getInt("id"));
             return true;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    public boolean syncObjectivesStatus() {
+        JSONObject response = this.getJSON("/objectives/activated");
+        try {
+            for (int i = 0; i < response.getJSONArray("objectives").length(); i++) {
+                JSONObject o = response.getJSONArray("objectives").getJSONObject(i);
+                Objective objective = this.objectives.findObjectiveById(o.getInt("id"));
+                this.activatedObjectives.addObjective(objective);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
