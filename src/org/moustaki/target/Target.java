@@ -38,6 +38,8 @@ public class Target extends MapActivity {
     private static final int MENU_ACTIVATE_OBJECTIVE = 3;
     private static final int MENU_PICKUP_GUN = 4;
     private static final int MENU_PICKUP_BOMB = 5;
+    private static final int MENU_KILL_ALIEN = 6;
+    private static final int MENU_DESTROY_OBJECTIVE = 7;
     
     private LocationManager lm;
     private TargetLocationListener ll;
@@ -45,8 +47,8 @@ public class Target extends MapActivity {
     private MapView mv;
     private ObjectivesOverlay objectives;
     private ActivatedObjectivesOverlay activatedObjectives;
-    private PlayersOverlay playersSideOne;
-    private PlayersOverlay playersSideTwo;
+    private PlayersOverlay humans;
+    private PlayersOverlay aliens;
     private ObjectivesOverlay bombs;
     private ObjectivesOverlay takenBombs;
     private ObjectivesOverlay guns;
@@ -105,24 +107,24 @@ public class Target extends MapActivity {
         
         // Setting other players overlay
         Drawable drawableHuman = this.getResources().getDrawable(R.drawable.human);
-        this.playersSideOne = new PlayersOverlay(drawableHuman, this);
+        this.humans = new PlayersOverlay(drawableHuman, this);
         Drawable drawableAlien = this.getResources().getDrawable(R.drawable.alien);
-        this.playersSideTwo = new PlayersOverlay(drawableAlien, this);
+        this.aliens = new PlayersOverlay(drawableAlien, this);
         
         // Setting up game context
         // @todo - shouldn't be hardcoded here
         //this.game = new Game("http://moustaki-target.appspot.com", this);
-        this.game = new Game("http://192.168.1.68:1234", this);
+        this.game = new Game("http://192.168.1.69:1234", this);
         this.game.setActivatedObjectives(this.activatedObjectives);
         this.game.setObjectives(this.objectives);
         this.game.setGuns(this.guns);
         this.game.setTakenGuns(this.takenGuns);
         this.game.setBombs(this.bombs);
         this.game.setTakenBombs(this.takenBombs);
-        this.game.setHumanPlayers(this.playersSideOne);
-        this.game.setAlienPlayers(this.playersSideTwo);
-        this.mv.getOverlays().add(this.playersSideOne);
-        this.mv.getOverlays().add(this.playersSideTwo);
+        this.game.setHumanPlayers(this.humans);
+        this.game.setAlienPlayers(this.aliens);
+        this.mv.getOverlays().add(this.humans);
+        this.mv.getOverlays().add(this.aliens);
         
         // Registering user
         this.game.register();
@@ -217,6 +219,7 @@ public class Target extends MapActivity {
         this.takenGuns.addObjective(gun);
         this.guns.removeObjective(gun);
         this.game.activate(gun);
+        this.game.addOneGun();
     }
     
     public void pickupBomb() {
@@ -224,6 +227,7 @@ public class Target extends MapActivity {
         this.takenBombs.addObjective(bomb);
         this.bombs.removeObjective(bomb);
         this.game.activate(bomb);
+        this.game.addOneBomb();
     }
     
     public void activateObjective() {
@@ -378,10 +382,18 @@ public class Target extends MapActivity {
         Thread updatePlayersLocation = new Thread() {
             public void run() {
                 try {
+                    int k = 0;
                     while (running) {
-                        // update other players' locations every 60s
-                        Thread.sleep(1000 * 60);
-                        getGame().updatePlayersLocations();
+                        k += 1;
+                        boolean update = false;
+                        if (k == 6) {
+                            k = 0;
+                            update = true;
+                        }
+                        // update other players' locations every 10s
+                        // display every 60s
+                        Thread.sleep(1000 * 10);
+                        getGame().updatePlayersLocations(update);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();

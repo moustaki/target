@@ -24,6 +24,8 @@ public class Game {
     private int playerId;
     private int gameId;
     private int playerSide;
+    private int availableGunsNumber = 0;
+    private int availableBombsNumber = 0;
     private boolean isGameMaster;
     private boolean isStarted = false;
     private ActivatedObjectivesOverlay activatedObjectives;
@@ -39,6 +41,34 @@ public class Game {
     public Game(String base, Target context) {
         this.context = context;
         this.base = base;
+    }
+    
+    public int getAvailableGunsNumber() {
+        return this.availableGunsNumber;
+    }
+    
+    public int getAvailableBombsNumber() {
+        return this.availableBombsNumber;
+    }
+    
+    public int addOneGun() {
+        this.availableGunsNumber += 1;
+        return this.availableGunsNumber;
+    }
+    
+    public int removeOneGun() {
+        this.availableGunsNumber -= 1;
+        return this.availableGunsNumber;
+    }
+    
+    public int removeOneBomb() {
+        this.availableBombsNumber -= 1;
+        return this.availableBombsNumber;
+    }
+    
+    public int addOneBomb() {
+        this.availableBombsNumber += 1;
+        return this.availableBombsNumber;
     }
     
     public boolean isHuman() {
@@ -283,7 +313,7 @@ public class Game {
         return true;
     }
     
-    public boolean updatePlayersLocations() {
+    public boolean updatePlayersLocations(boolean update) {
         // getting geo locations
         JSONObject response = this.getJSON("/games/" + this.gameId);
         try {
@@ -298,8 +328,8 @@ public class Game {
                     int side = p.getInt("side") - 1; // @todo weird side = 0 bug
                     GeoPoint playerPoint = new GeoPoint(latitude, longitude);
                     Player player = new Player(p.getInt("id"), side, playerPoint, ""+p.getInt("id"), ""); 
-                    if (side == 0) this.humanPlayers.addPlayer(player);
-                    if (side == 1) this.alienPlayers.addPlayer(player);
+                    if (side == 0) this.humanPlayers.updatePlayer(player, update); 
+                    if (side == 1) this.alienPlayers.updatePlayer(player, update);
                 }
             }
         } catch (JSONException e) {

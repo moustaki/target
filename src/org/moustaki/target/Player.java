@@ -14,4 +14,7 @@ public class Player extends OverlayItem {
         this.side = side;
     }
     
+    public int getId() {
+        return this.id;
+    }
 }
