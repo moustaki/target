@@ -169,6 +169,7 @@ public class Target extends MapActivity {
             }
         } else {
             // Game started
+            // @todo invert conditions
             if ((this.getObjectiveInRange() != null) 
                     && this.game.isAlien()) {
                 menu.add(0, MENU_ACTIVATE_OBJECTIVE, 0, this.getString(R.string.objective_action));
@@ -180,6 +181,10 @@ public class Target extends MapActivity {
             if ((this.getBombInRange() != null)
                     && this.game.isHuman()) {
                 menu.add(0, MENU_PICKUP_BOMB, 0, "Get the bomb");
+            }
+            if ((this.getAlienInRange() != null)
+                    && this.game.isHuman()) {
+                menu.add(0, MENU_KILL_ALIEN, 0, "Kill!");
             }
         }
         menu.add(0, MENU_QUIT, 0, "Quit");
@@ -210,8 +215,17 @@ public class Target extends MapActivity {
         case MENU_PICKUP_BOMB:
             this.pickupBomb();
             return true;
+        case MENU_KILL_ALIEN:
+            this.kill();
+            return true;
         }
         return false;
+    }
+    
+    public void kill() {
+        Player alien = this.getAlienInRange();
+        this.game.kill(alien);
+        this.aliens.removePlayer(alien);
     }
     
     public void pickupGun() {
@@ -308,6 +322,11 @@ public class Target extends MapActivity {
     public Objective getBombInRange() {
         // range for bombs: 50m
         return this.bombs.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 50.0);
+    }
+    
+    public Player getAlienInRange() {
+        // range for players: 20m
+        return this.aliens.getClosestPlayerInRange(this.ll.getCurrentLocation(), 20.0);
     }
     
     public boolean pickSide() {

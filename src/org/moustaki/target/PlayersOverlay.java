@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.app.AlertDialog;
 import android.graphics.drawable.Drawable;
 
+import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
 
@@ -31,6 +32,17 @@ public class PlayersOverlay extends ItemizedOverlay {
         populate();
     }
     
+    public void removePlayer(Player player) {
+        this.players.remove(player);
+        this.displayedPlayers.remove(player);
+        populate();
+    }
+    
+    public void removePlayerById(int id) {
+        Player p = this.findPlayerById(id);
+        this.removePlayer(p);
+    }
+    
     public Player findDisplayedPlayerById(int id) {
         for (Player player : displayedPlayers) {
             if (player.getId() == id) {
@@ -47,6 +59,31 @@ public class PlayersOverlay extends ItemizedOverlay {
             }
         }
         return null;
+    }
+    
+    // should probably factor that out
+    public Player getClosestPlayerInRange(GeoPoint point, double range) {
+        Player closest = null;
+        if (point != null) {
+            double mindistance = 0.0;
+            for (Player player : players) {
+                double distance = DistanceCalculator.distance(point, player.getPoint());
+                if (mindistance == 0.0) {
+                    mindistance = distance;
+                    closest = player;
+                } else {
+                    if (distance < mindistance) {
+                        mindistance = distance;
+                        closest = player;
+                    }
+                }
+            }
+            boolean isInRange = (mindistance <= range);
+            if (!isInRange) {
+                closest = null;
+            }
+        }
+        return closest;
     }
     
     public void clear() {

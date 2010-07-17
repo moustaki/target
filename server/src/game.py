@@ -8,11 +8,13 @@ class Player(db.Model):
     side = db.IntegerProperty()
     latitude = db.IntegerProperty()
     longitude = db.IntegerProperty()
+    killed = db.BooleanProperty()
     def to_dict(self):
         d = {}
         d['id'] = self.key().id()
         d['latitude'] = self.latitude
         d['longitude'] = self.longitude
+        d['killed'] = self.killed
         if self.side:
             d['side'] = self.side
         return d
@@ -92,6 +94,9 @@ class PlayerController(webapp.RequestHandler):
         player = Player.get_by_id(player_id)
         if player:
             self.response.headers['Content-Type'] = 'application/json'
+            if self.request.get('killed'):
+                if self.request.get('killed') == 'true':
+                    player.killed = True
             if self.request.get('side'):
                 side = int(self.request.get('side'))
                 player.side = side
@@ -169,6 +174,7 @@ class ObjectivesListController(webapp.RequestHandler):
 class RegisterController(webapp.RequestHandler):
     def get(self):
         player = Player()
+        player.killed = False
         player.put()
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(simplejson.dumps(player.to_dict()))
