@@ -21,9 +21,11 @@ class Player(db.Model):
 class Game(db.Model):
     players = db.ListProperty(db.Key)
     objectives = db.ListProperty(db.Key)
+    won_by = db.IntegerProperty()
     def to_dict(self):
         d = {}
         d['id'] = self.key().id()
+        d['won_by'] = self.won_by
         d['players'] = []
         for player in db.get(self.players):
             d['players'].append(player.to_dict())
@@ -64,6 +66,11 @@ class GameController(webapp.RequestHandler):
         game_id = int(game_id)
         game = Game.get_by_id(game_id)
         if game:
+            if self.request.get('won_by'):
+                game.won_by = int(self.request.get('won_by'))
+                self.response.headers['Content-Type'] = 'application/json'
+                self.response.out.write(simplejson.dumps(game.to_dict()))
+                return
             player_id = int(self.request.get('player_id'))
             player = Player.get_by_id(player_id)
             if player:
@@ -182,6 +189,7 @@ class RegisterController(webapp.RequestHandler):
 class StartController(webapp.RequestHandler):
     def get(self):
         game = Game()
+        game.won_by = 0
         game.put()
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(simplejson.dumps(game.to_dict()))

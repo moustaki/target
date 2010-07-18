@@ -25,7 +25,10 @@ public class PlayersOverlay extends ItemizedOverlay {
         Player p = this.findPlayerById(player.getId());
         if (p != null) {
             this.players.remove(p);
-            if (display) this.displayedPlayers.remove(p);
+            if (display) {
+                Player p2 = this.findDisplayedPlayerById(player.getId());
+                this.displayedPlayers.remove(p2);
+            }
         }
         this.players.add(player);
         if (display) this.displayedPlayers.add(player);
@@ -89,6 +92,7 @@ public class PlayersOverlay extends ItemizedOverlay {
     public void clear() {
         this.displayedPlayers.clear();
         this.players.clear();
+        populate();
     }
     
     @Override

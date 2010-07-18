@@ -28,6 +28,9 @@ public class Game {
     private int availableBombsNumber = 0;
     private boolean isGameMaster;
     private boolean isStarted = false;
+    private boolean ended = false;
+    private boolean won = false;
+    private boolean killed = false;
     private ActivatedObjectivesOverlay activatedObjectives;
     private ObjectivesOverlay objectives;
     private ObjectivesOverlay guns;
@@ -43,12 +46,22 @@ public class Game {
         this.base = base;
     }
     
+    public Player getPlayer() {
+        Player player = this.humanPlayers.findPlayerById(this.playerId);
+        if (player != null) return player;
+        return this.alienPlayers.findPlayerById(this.playerId);
+    }
+    
     public int getAvailableGunsNumber() {
         return this.availableGunsNumber;
     }
     
     public int getAvailableBombsNumber() {
         return this.availableBombsNumber;
+    }
+    
+    public boolean isKilled() {
+        return this.killed;
     }
     
     public int addOneGun() {
@@ -132,6 +145,14 @@ public class Game {
         return this.isStarted;
     }
     
+    public boolean isWon() {
+        return this.won;
+    }
+    
+    public boolean isEnded() {
+        return this.ended;
+    }
+    
     public int getPlayerId() {
         return this.playerId;
     }
@@ -162,14 +183,37 @@ public class Game {
         return false;
     }
     
+    public boolean win() {
+        this.ended = true;
+        this.won = true;
+        HashMap<String,String> data = new HashMap<String,String>();
+        data.put("won_by", ""+(this.getPlayerSide() + 1));
+        JSONObject response = this.postJSON("/games/" + this.gameId, data);
+        if (response == null) return false;
+        return true;
+    }
+    
+    public int getTotalPower() {
+        int power = 0;
+        for (Objective objective : this.objectives.getObjectives()) {
+            if (objective.isActivated()) {
+                power += objective.getPower();
+            }
+        }
+        return power;
+    }
+    
     public boolean syncObjectivesStatus() {
         JSONObject response = this.getJSON("/objectives/activated");
         try {
             for (int i = 0; i < response.getJSONArray("objectives").length(); i++) {
+                this.activatedObjectives.clear();
+                this.objectives.setAllUnactivated();
                 JSONObject o = response.getJSONArray("objectives").getJSONObject(i);
                 Objective objective = this.objectives.findObjectiveById(o.getInt("id"));
                 if (objective != null) {
                     this.activatedObjectives.addObjective(objective);
+                    objective.setActivated(true);
                 }
                 objective = this.guns.findObjectiveById(o.getInt("id"));
                 if (objective != null) {
@@ -322,32 +366,44 @@ public class Game {
     }
     
     public boolean updatePlayersLocations(boolean update) {
-        // getting geo locations
-        JSONObject response = this.getJSON("/games/" + this.gameId);
-        try {
-            this.alienPlayers.clear();
-            this.humanPlayers.clear();
-            for (int i = 0; i < response.getJSONArray("players").length(); i++) {
-                JSONObject p = response.getJSONArray("players").getJSONObject(i);
-                int id = p.getInt("id");
-                if (id != this.playerId) {
-                    boolean killed = p.getBoolean("killed");
-                    int side = p.getInt("side") - 1; // @todo weird side = 0 bug
-                    if (killed) {
-                        if (side == 0) this.humanPlayers.removePlayerById(p.getInt("id"));
-                        if (side == 1) this.alienPlayers.removePlayerById(p.getInt("id"));
+        if (this.isStarted) {
+            // getting geo locations
+            JSONObject response = this.getJSON("/games/" + this.gameId);
+            try {
+                if (response.getInt("won_by") > 0) {
+                    if (this.getPlayerSide() != response.getInt("won_by") - 1) {
+                        this.won = false;
+                        this.ended = true;
                     } else {
-                        int latitude = p.getInt("latitude");
-                        int longitude = p.getInt("longitude");
-                        GeoPoint playerPoint = new GeoPoint(latitude, longitude);
-                        Player player = new Player(p.getInt("id"), side, playerPoint, ""+p.getInt("id"), ""); 
-                        if (side == 0) this.humanPlayers.updatePlayer(player, update); 
-                        if (side == 1) this.alienPlayers.updatePlayer(player, update);
+                        this.won = true;
+                        this.ended = true;
                     }
                 }
+                for (int i = 0; i < response.getJSONArray("players").length(); i++) {
+                    JSONObject p = response.getJSONArray("players").getJSONObject(i);
+                    int id = p.getInt("id");
+                    if (id != this.playerId) {
+                        boolean killed = p.getBoolean("killed");
+                        int side = p.getInt("side") - 1; // @todo weird side = 0 bug
+                        if (killed) {
+                            if (p.getInt("id") == this.playerId) {
+                                this.killed = true;
+                            }
+                            if (side == 0) this.humanPlayers.removePlayerById(p.getInt("id"));
+                            if (side == 1) this.alienPlayers.removePlayerById(p.getInt("id"));
+                        } else {
+                            int latitude = p.getInt("latitude");
+                            int longitude = p.getInt("longitude");
+                            GeoPoint playerPoint = new GeoPoint(latitude, longitude);
+                            Player player = new Player(p.getInt("id"), side, playerPoint, ""+p.getInt("id"), ""); 
+                            if (side == 0) this.humanPlayers.updatePlayer(player, update); 
+                            if (side == 1) this.alienPlayers.updatePlayer(player, update);
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
         return true;
     }

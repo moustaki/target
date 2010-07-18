@@ -25,6 +25,12 @@ public class ActivatedObjectivesOverlay extends com.google.android.maps.Itemized
     
     public void clear() {
         this.objectives.clear();
+        populate();
+    }
+    
+    public void removeObjective(Objective objective) {
+        this.objectives.remove(objective);
+        populate();
     }
 
     public void addObjective(Objective objective) {

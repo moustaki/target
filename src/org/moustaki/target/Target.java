@@ -40,6 +40,9 @@ public class Target extends MapActivity {
     private static final int MENU_PICKUP_BOMB = 5;
     private static final int MENU_KILL_ALIEN = 6;
     private static final int MENU_DESTROY_OBJECTIVE = 7;
+    private static final int MENU_WON = 8;
+    private static final int MENU_LOST = 9;
+    private static final int MENU_KILLED = 10;
     
     private LocationManager lm;
     private TargetLocationListener ll;
@@ -55,6 +58,7 @@ public class Target extends MapActivity {
     private ObjectivesOverlay takenGuns;
     private Game game;
     private boolean running = true;
+    private boolean danger = false;
     
     /** Called when the activity is first created. */
     @Override
@@ -131,11 +135,11 @@ public class Target extends MapActivity {
         CharSequence notification = "Registered as user " + this.game.getPlayerId();
         Toast.makeText(this, notification, Toast.LENGTH_SHORT).show();
         
-        // Pick game identifier
-        this.joinGame();
-        
         // Human or Alien?
         this.pickSide();
+        
+        // Pick game identifier
+        this.joinGame();
         
         // Start syncing locations
         this.syncLocations();
@@ -167,10 +171,11 @@ public class Target extends MapActivity {
                 // Some objectives available, and we are the master
                 menu.add(0, MENU_START_GAME, 0, this.getString(R.string.start_game));
             }
-        } else {
+        } else if (!this.game.isKilled()) {
             // Game started
             // @todo invert conditions
             if ((this.getObjectiveInRange() != null) 
+                    && !this.getObjectiveInRange().isActivated()
                     && this.game.isAlien()) {
                 menu.add(0, MENU_ACTIVATE_OBJECTIVE, 0, this.getString(R.string.objective_action));
             }
@@ -183,9 +188,23 @@ public class Target extends MapActivity {
                 menu.add(0, MENU_PICKUP_BOMB, 0, "Get the bomb");
             }
             if ((this.getAlienInRange() != null)
-                    && this.game.isHuman()) {
+                    && this.game.isHuman()
+                    && this.game.getAvailableGunsNumber() > 0) {
                 menu.add(0, MENU_KILL_ALIEN, 0, "Kill!");
             }
+            if (this.game.isHuman()
+                    && this.getActivatedObjectiveInRange() != null
+                    && this.game.getAvailableBombsNumber() > 0) {
+                menu.add(0, MENU_DESTROY_OBJECTIVE, 0, "Destroy!");
+            }
+            if ((this.game.isEnded() && this.game.isWon())) {
+                menu.add(0, MENU_WON, 0, "You won!!");
+            }
+            if ((this.game.isEnded() && !this.game.isWon())) {
+                menu.add(0, MENU_LOST, 0, "You lost...");
+            }
+        } else {
+            menu.add(0, MENU_KILLED, 0, "You were killed...");
         }
         menu.add(0, MENU_QUIT, 0, "Quit");
         return true;
@@ -209,6 +228,9 @@ public class Target extends MapActivity {
         case MENU_ACTIVATE_OBJECTIVE:
             this.activateObjective();
             return true;
+        case MENU_DESTROY_OBJECTIVE:
+            this.destroyObjective();
+            return true;
         case MENU_PICKUP_GUN:
             this.pickupGun();
             return true;
@@ -222,10 +244,22 @@ public class Target extends MapActivity {
         return false;
     }
     
+    public void win() {
+        Toast.makeText(this, "You win!!!", Toast.LENGTH_LONG);
+        this.game.win();
+    }
+    
     public void kill() {
         Player alien = this.getAlienInRange();
-        this.game.kill(alien);
-        this.aliens.removePlayer(alien);
+        if (this.game.getAvailableGunsNumber() > 0) {
+            this.game.kill(alien);
+            this.aliens.removePlayer(alien);
+            // wins if all aliens are killed
+            if (this.aliens.size() == 0) {
+                this.win();
+            }
+            this.game.removeOneGun();
+        }
     }
     
     public void pickupGun() {
@@ -234,6 +268,7 @@ public class Target extends MapActivity {
         this.guns.removeObjective(gun);
         this.game.activate(gun);
         this.game.addOneGun();
+        Toast.makeText(Target.this, "You picked one gun!", 1).show();
     }
     
     public void pickupBomb() {
@@ -242,6 +277,72 @@ public class Target extends MapActivity {
         this.bombs.removeObjective(bomb);
         this.game.activate(bomb);
         this.game.addOneBomb();
+        Toast.makeText(Target.this, "You picked one bomb!", 1).show();
+    }
+    
+    public void destroyObjective() {
+        Objective objective = this.getActivatedObjectiveInRange();
+        if (objective != null) {
+            this.activatedObjectives.removeObjective(objective);
+            this.game.activate(objective);
+            Toast.makeText(Target.this, "You destroyed the objective!", 1).show();
+        }
+    }
+    
+    public void checkIfInDangerousZone() {
+        if (!danger) {
+            Objective objective = this.getDangerousObjectiveInRange();
+            if (objective != null) {
+                danger = true;
+                final ProgressDialog progress = new ProgressDialog(this);
+                progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                progress.setMessage("Infection...");
+                progress.setCancelable(false);
+                progress.show();
+                final Handler handler = new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        int elapsed = msg.what;
+                        if (elapsed > 0 && elapsed < 120) {
+                            progress.setProgress((elapsed * 100 / 120));
+                        } else if (elapsed == -1) {
+                            progress.dismiss();
+                            Toast.makeText(Target.this, "You left the dangerous area.", 1).show();
+                        } else if (elapsed == 999) {
+                            progress.dismiss();
+                            Toast.makeText(Target.this, "Arg. You're dead.", 1).show();
+                            getGame().kill(getGame().getPlayer());
+                        }
+                    }
+                };
+                Thread activating = new Thread() {
+                    public void run() {
+                        try {
+                            Objective objective = getDangerousObjectiveInRange();
+                            int start = getUnixTime();
+                            int current = start;
+                            while (current - start < 120) {
+                                if (objective != getDangerousObjectiveInRange()) {
+                                    handler.sendEmptyMessage(-1);
+                                    danger = false;
+                                    return;
+                                }
+                                current = getUnixTime();
+                                int elapsed = (current - start);
+                                handler.sendEmptyMessage(elapsed);
+                                Thread.sleep(1000);
+                            }
+                            handler.sendEmptyMessage(999);
+                            getGame().kill(getGame().getPlayer());
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                Toast.makeText(this, "Entering dangerous zone... You have two minutes to leave.", Toast.LENGTH_LONG).show();
+                activating.start();
+            }
+        }
     }
     
     public void activateObjective() {
@@ -284,6 +385,10 @@ public class Target extends MapActivity {
                     handler.sendEmptyMessage(999);
                     getActivatedObjectives().addObjective(objective);
                     getGame().activate(objective);
+                    // Wins the game if > 3000W
+                    if (getGame().getTotalPower() > 3000) {
+                        win();
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -309,19 +414,29 @@ public class Target extends MapActivity {
         return this.activatedObjectives;
     }
     
+    public Objective getDangerousObjectiveInRange() {
+        // range for infected zone: 150m
+        return this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 150.0, true);
+    }
+    
+    public Objective getActivatedObjectiveInRange() {
+        // range for activated objectives: 20m
+        return this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 20.0, true);
+    }
+    
     public Objective getObjectiveInRange() {
         // range for objectives: 100m
-        return this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 100.0);
+        return this.objectives.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 100.0, false);
     }
     
     public Objective getGunInRange() {
         // range for guns: 50m
-        return this.guns.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 50.0);
+        return this.guns.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 50.0, false);
     }
     
     public Objective getBombInRange() {
         // range for bombs: 50m
-        return this.bombs.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 50.0);
+        return this.bombs.getClosestObjectiveInRange(this.ll.getCurrentLocation(), 50.0, false);
     }
     
     public Player getAlienInRange() {

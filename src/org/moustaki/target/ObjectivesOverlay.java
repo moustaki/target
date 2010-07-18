@@ -73,19 +73,27 @@ public class ObjectivesOverlay extends ItemizedOverlay {
         return null;
     }
     
-    public Objective getClosestObjectiveInRange(GeoPoint point, double range) {
+    public void setAllUnactivated() {
+        for (Objective objective : this.objectives) {
+            objective.setActivated(false);
+        }
+    }
+    
+    public Objective getClosestObjectiveInRange(GeoPoint point, double range, boolean activated) {
         Objective closest = null;
         if (point != null) {
             double mindistance = 0.0;
             for (Objective objective : objectives) {
-                double distance = DistanceCalculator.distance(point, objective.getPoint());
-                if (mindistance == 0.0) {
-                    mindistance = distance;
-                    closest = objective;
-                } else {
-                    if (distance < mindistance) {
+                if (!activated || objective.isActivated()) {
+                    double distance = DistanceCalculator.distance(point, objective.getPoint());
+                    if (mindistance == 0.0) {
                         mindistance = distance;
                         closest = objective;
+                    } else {
+                        if (distance < mindistance) {
+                            mindistance = distance;
+                            closest = objective;
+                        }
                     }
                 }
             }

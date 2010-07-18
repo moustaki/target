@@ -17,7 +17,7 @@ public class TargetLocationListener implements LocationListener {
 	private MapController mc;
 	private MapView mv;
 	private GeoPoint currentLocation;
-	private Context context;
+	private Target context;
 	private boolean firstUpdateReceived = false;
 	private SelfOverlay selfOverlay;
 	
@@ -46,6 +46,10 @@ public class TargetLocationListener implements LocationListener {
             
             OverlayItem thief = new OverlayItem(this.currentLocation, this.context.getString(R.string.self_title), "");
             this.selfOverlay.addOverlay(thief);
+            
+            if (this.context.getGame().isHuman()) {
+                this.context.checkIfInDangerousZone();
+            }
 		}
 	}
 	
